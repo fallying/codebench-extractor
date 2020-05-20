@@ -1,10 +1,9 @@
-import os
 import logging
+import os
+from collections import Counter
 from datetime import datetime
 
 from model import *
-
-from collections import Counter
 
 
 class Util:
@@ -61,11 +60,6 @@ class Logger:
         if not Logger.__cblogger:
             Logger.__cblogger = logging.getLogger('cblogger')
 
-            dfh = logging.FileHandler(f'{Logger.__path}/{data_hoje}_debug.log')
-            dfh.setLevel(level=logging.DEBUG)
-            dfh.setFormatter(formatter)
-            Logger.__cblogger.addHandler(dfh)
-
             ifh = logging.FileHandler(f'{Logger.__path}/{data_hoje}_info.log')
             ifh.setLevel(level=logging.INFO)
             ifh.setFormatter(formatter)
@@ -85,10 +79,6 @@ class Logger:
             console_handler.setLevel(level=logging.INFO)
             console_handler.setFormatter(formatter)
             Logger.__cblogger.addHandler(console_handler)
-
-    @staticmethod
-    def debug(msg: str):
-        Logger.__cblogger.debug(msg)
 
     @staticmethod
     def info(msg: str):

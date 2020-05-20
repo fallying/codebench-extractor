@@ -1,14 +1,14 @@
+import keyword
 import re
-
-from util import Util
+import tokenize
 from datetime import datetime, timedelta
 
-from radon.visitors import ComplexityVisitor
-from radon.raw import analyze
 from radon.metrics import h_visit
+from radon.raw import analyze
+from radon.visitors import ComplexityVisitor
 
 from parser import *
-from model import *
+from util import Util
 
 
 class CodebenchExtractor:
@@ -26,8 +26,124 @@ class CodebenchExtractor:
     __exercices_file_extension = '.py'
     # extensão do arquivo de código-fonte das soluções dos 'Professores
     __solution_extension = '.code'
-    # tempo de inatividade
-    __inactivity_threshold = timedelta(minutes=5)
+    # limite do intervalo de tempo entre eventos de interação com o CodeMirror duranet a implementação de uma Solução
+    # qualquer intervalo maior que o limite abaixo é considerado ociosidade
+    __limite_ociosidade = timedelta(minutes=5)
+
+    __module_token = {
+        'import': True,
+        'from': True
+    }
+
+    __type_token = {
+        'bool': True,
+        'bytes': True,
+        'bytearray': True,
+        'complex': True,
+        'dict': True,
+        'float': True,
+        'set': True,
+        'int': True,
+        'list': True,
+        'range': True,
+        'object': True,
+        'str': True,
+        'memoryview': True,
+        'None': True,
+        'frozenset': True
+    }
+
+    __builtin_token = {
+        'abs': True,
+        'all': True,
+        'any': True,
+        'ascii': True,
+        'bin': True,
+        'bool': True,
+        'breakpoint': True,
+        'bytearray': True,
+        'bytes': True,
+        'callable': True,
+        'chr': True,
+        'classmethod': True,
+        'compile': True,
+        'complex': True,
+        'delattr': True,
+        'dict': True,
+        'dir': True,
+        'divmod': True,
+        'enumerate': True,
+        'eval': True,
+        'exec': True,
+        'filter': True,
+        'float': True,
+        'format': True,
+        'frozenset': True,
+        'getattr': True,
+        'globals': True,
+        'hasattr': True,
+        'hash': True,
+        'hex': True,
+        'id': True,
+        'input': True,
+        'int': True,
+        'isinstance': True,
+        'issubclass': True,
+        'iter': True,
+        'len': True,
+        'list': True,
+        'locals': True,
+        'map': True,
+        'max': True,
+        'min': True,
+        'next': True,
+        'object': True,
+        'oct': True,
+        'open': True,
+        'ord': True,
+        'pow': True,
+        'print': True,
+        'property': True,
+        'range': True,
+        'repr': True,
+        'reversed': True,
+        'round': True,
+        'set': True,
+        'setattr': True,
+        'slice': True,
+        'sorted': True,
+        'staticmethod': True,
+        'str': True,
+        'sum': True,
+        'super': True,
+        'tuple': True,
+        'type': True,
+        'vars': True,
+        'zip': True,
+    }
+
+    __loop_token = {
+        'for': True,
+        'while': True
+    }
+
+    __conditional_token = {
+        'if': True,
+        'elif': True,
+        'else': True
+    }
+
+    __logical_op_token = {
+        'and': True,
+        'or': True,
+        'not': True
+    }
+
+    @staticmethod
+    def __is_import_token(t: tokenize.TokenInfo):
+        if t.start[1] == 0:
+            return CodebenchExtractor.__module_token.get(t.string, False)
+        return False
 
     @staticmethod
     def extract_periodos(path: str) -> List[Periodo]:
@@ -286,7 +402,7 @@ class CodebenchExtractor:
                     turma.estudantes.append(estudante)
 
     @staticmethod
-    def __get_code_metrics(codigo: str):
+    def __extract_code_metrics(codigo: str):
         """
         Recupera as métricas de um código Python.
 
@@ -316,47 +432,38 @@ class CodebenchExtractor:
             - time: Tempo (T = E / 18 segundos)
             - bugs: Bugs (B = V / 3000), estivativa de erros na implementação
 
-        :param path: Caminho absoluto para o arquivo de código fonte (.py).
-        :type path: str
+        :param codigo: String com o Código-Fonte.
+        :type codigo: str
         :return: As métricas que puderam ser extraídas do código.
         """
-        metricas = Metricas()
-        try:
-            v = ComplexityVisitor.from_code(codigo)
-            metricas.complexity = v.complexity
-            metricas.n_functions = len(v.functions)
-            metricas.n_classes = len(v.functions)
-        except Exception as e:
-            pass
+        metricas = Metricas(None)
+        v = ComplexityVisitor.from_code(codigo)
+        metricas.complexity = v.complexity
+        metricas.n_functions = len(v.functions)
+        metricas.n_classes = len(v.functions)
 
-        try:
-            a = analyze(codigo)
-            metricas.loc = a.loc
-            metricas.lloc = a.lloc
-            metricas.sloc = a.sloc
-            metricas.blank_lines = a.blank
-            metricas.multilines = a.multi
-            metricas.comments = a.comments
-            metricas.single_comments = a.single_comments
-        except Exception as e:
-            pass
+        a = analyze(codigo)
+        metricas.loc = a.loc
+        metricas.lloc = a.lloc
+        metricas.sloc = a.sloc
+        metricas.blank_lines = a.blank
+        metricas.multilines = a.multi
+        metricas.comments = a.comments
+        metricas.single_comments = a.single_comments
 
-        try:
-            h = h_visit(codigo)
-            metricas.h1 = h.total.h1
-            metricas.h2 = h.total.h2
-            metricas.N1 = h.total.N1
-            metricas.N2 = h.total.N2
-            metricas.h = h.total.vocabulary
-            metricas.N = h.total.length
-            metricas.calculated_N = h.total.calculated_length
-            metricas.volume = h.total.volume
-            metricas.difficulty = h.total.difficulty
-            metricas.effort = h.total.effort
-            metricas.bugs = h.total.bugs
-            metricas.time = h.total.time
-        except Exception as e:
-            pass
+        h = h_visit(codigo)
+        metricas.h1 = h.total.h1
+        metricas.h2 = h.total.h2
+        metricas.N1 = h.total.N1
+        metricas.N2 = h.total.N2
+        metricas.h = h.total.vocabulary
+        metricas.N = h.total.length
+        metricas.calculated_N = h.total.calculated_length
+        metricas.volume = h.total.volume
+        metricas.difficulty = h.total.difficulty
+        metricas.effort = h.total.effort
+        metricas.bugs = h.total.bugs
+        metricas.time = h.total.time
 
         return metricas
 
@@ -377,98 +484,63 @@ class CodebenchExtractor:
         with open(path, 'r') as f:
             Logger.info(f'Calculando tempos des implementação e interação: {path}')
             # datas de inicio e termino da atividade, servem como limites para o calculo do tempo e solução
-            at_dti = datetime.strptime(execucao.atividade.data_inicio, '%Y-%m-%d %H:%M')
-            at_dtf = datetime.strptime(execucao.atividade.data_termino, '%Y-%m-%d %H:%M')
+            atividade_data_inicio = datetime.strptime(execucao.atividade.data_inicio, '%Y-%m-%d %H:%M')
+            atividade_data_fim = datetime.strptime(execucao.atividade.data_termino, '%Y-%m-%d %H:%M')
 
-            execucao.t_implementacao = timedelta(0)
-            execucao.t_interacao = timedelta(0)
+            # algumas turmas são dividas durante os exames, por isso aumento o intervalo de tempo
+            if execucao.atividade.tipo == 'exam':
+                atividade_data_inicio -= timedelta(hours=2)
+                atividade_data_fim += timedelta(hours=2)
+
+            execucao.tempo_total = timedelta(0)
+            execucao.tempo_foco = timedelta(0)
 
             # percorremos o arquivo de log até os eventos terem um datetime maior que o do inicio da atividade
-            lines = f.readlines()
-            i = 0
-            size = len(lines)
-            while i < size:
-                try:
-                    start_datetime, _, _ = CodebenchExtractor.__get_event_info(lines[i])
-                    if start_datetime >= at_dti:
-                        break
-                except Exception:
-                    pass
-                i += 1
-
-            while i < size:
-                end_datetime = None
-
-                # buscamos então o evento de focus
-                while i < size:
-                    i += 1
-                    try:
-                        start_datetime, event_name, _ = CodebenchExtractor.__get_event_info(lines[i])
-                        if event_name == 'focus':
-                            break
-                        # se o evento for uma 'sumissão' correta ou o datetime do evento for maior que o datetime de termino da atividade
-                        # finalizamos o calculo do tempo de solução
-                        if event_name == 'submit' and event_msg.startswith('Congr'):
-                            start_datetime = None
-                            i = size
-                    except Exception:
-                        pass
-
-                # efetuamos o somatório dos intervalos enquanto o editor do CodeMirror possuir foco
-                while i < size:
-                    i += 1
-                    try:
-                        # se temos o datetime de um evento anterior, podemos calcular o intervalo de tempo entre os eventos
-                        end_datetime, event_name, event_msg = CodebenchExtractor.__get_event_info(lines[i])
-                        if event_name == 'blur':
-                            break
-                    except Exception:
-                        pass
-
-                if not end_datetime:
-                    break
-                if end_datetime > at_dtf:
-                    break
-
-                if start_datetime <= end_datetime:
-                    interval = (end_datetime - start_datetime)
-                    if interval < CodebenchExtractor.__inactivity_threshold:
-                        execucao.t_implementacao += interval
-                    execucao.t_interacao += interval
+            line = f.readline()
+            at_open = True
+            while line and at_open:
+                event_datetime, event_name, event_msg = CodebenchExtractor.__get_event_info(line)
+                if event_name == 'focus' and event_datetime and (event_datetime >= atividade_data_inicio):
+                    last_interaction = event_datetime
+                    line = f.readline()
+                    while line and event_name != 'blur':
+                        next_interaction, event_name, event_msg = CodebenchExtractor.__get_event_info(line)
+                        if next_interaction:
+                            if next_interaction > atividade_data_fim:
+                                at_open = False
+                                break
+                            intervalo = next_interaction - last_interaction
+                            execucao.tempo_total += intervalo
+                            if intervalo <= CodebenchExtractor.__limite_ociosidade:
+                                execucao.tempo_foco += intervalo
+                            last_interaction = next_interaction
+                        line = f.readline()
+                line = f.readline()
 
     @staticmethod
-    def __get_event_info(linha):
-        date, _, linha = linha.partition('#')
-        name, _, msg = linha.partition('#')
-        # data e hora do evento desconsiderando os milisegundos
-        date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S.%f')
-        return date, name, msg
+    def __get_event_info(log_line: str):
+        """
+        Recebe uma linha de entrada do arquivo de logs do CodeMirro e retorna uma Tupla com:
 
-    @staticmethod
-    def __get_float_value(line):
-        value = 0.0
+        - A Data e Hora do evento
+        - Nome do evento (tipo)
+        - Mensagem do evento (texto)
+
+        :param log_line: 
+        :return: Tupla com data, nome, mensagem.
+        """
+        date, name, msg = None, '', ''
         try:
-            value = float(line)
+            date, _, log_line = log_line.partition('#')
+            name, _, msg = log_line.partition('#')
+            # data e hora do evento desconsiderando os milisegundos
+            date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S.%f')
         except Exception:
-            pass
-        return value
+            date = None
+            name = ''
+            msg = ''
 
-    @staticmethod
-    def __extract_code(lines, i):
-        codigo = []
-        while not lines[i].startswith('-- '):
-            codigo.append(lines[i])
-            i += 1
-        return codigo
-
-    @staticmethod
-    def __get_error_name(lines, i):
-        while not lines[i].startswith('*-*'):
-            m = re.match(r"^([\w_\.]+Error)", lines[i])
-            if m:
-                return m.group(0)
-            i += 1
-        return None
+        return date, name, msg
 
     @staticmethod
     def __extract_executions_count(path: str, execucao: Execucao):
@@ -495,38 +567,68 @@ class CodebenchExtractor:
 
             while i < size:
                 if lines[i].startswith('== S'):
-                    code = None
                     execucao.t_execucao = None
                     execucao.acertou = False
                     execucao.n_submissoes += 1
                     i += 1
                     while not lines[i].startswith('*-*'):
                         if lines[i].startswith('-- CODE'):
-                            code = CodebenchExtractor.__extract_code(lines, i + 1)
-                            i += len(code) + 1
+                            i += 1
+                            code_start_line = i
+                            while not lines[i].startswith('-- '):
+                                i += 1
+                            code_end_line = i
                         elif lines[i].startswith('-- EXEC'):
-                            execucao.t_execucao = CodebenchExtractor.__get_float_value(lines[i + 1].strip())
+                            value = lines[i + 1].strip()
+                            try:
+                                execucao.t_execucao = float(value)
+                            except Exception:
+                                execucao.t_execucao = None
                             i += 2
                         elif lines[i].startswith('-- GRAD'):
-                            execucao.nota_final = CodebenchExtractor.__get_float_value(lines[i + 1].strip()[:-1])
+                            value = lines[i + 1].strip()[:-1]
+                            try:
+                                execucao.nota_final = float(value)
+                            except Exception:
+                                execucao.nota_final = None
                             i += 2
                         elif lines[i].startswith('-- ERROR'):
-                            i += 3
                             execucao.n_erros += 1
-                            error_names.append(CodebenchExtractor.__get_error_name(lines, i))
+                            i += 2
+                            while not lines[i].startswith('*-*'):
+                                m = re.match(r"^([\w_\.]+Error)", lines[i])
+                                if m:
+                                    error_names.append(m.group(0))
+                                i += 1
                         else:
                             i += 1
+
                     if execucao.nota_final > 99.99:
-                        execucao.acertou = True
-                        execucao.metricas = CodebenchExtractor.__get_code_metrics(''.join(code))
-                        i = size
+                        try:
+                            code = ''.join(lines[code_start_line:code_end_line])
+                            execucao.metricas = CodebenchExtractor.__extract_code_metrics(code)
+                            with open('temp.py', 'w') as temp:
+                                temp.write(code)
+                            execucao.tokens = CodebenchExtractor.__extract_code_tokens('temp.py')
+                            execucao.acertou = True
+                            i = size + 1
+                        except Exception:
+                            execucao.nota_final = 0.0
+                            execucao.metricas = None
+                            execucao.tokens = None
+                            Logger.error(f'Erro ao extrair métricas e tokens do arquivo de log de execucoes: {path}')
+
                 elif lines[i].startswith('== T'):
                     execucao.n_testes += 1
                     while not lines[i].startswith('*-*'):
                         if lines[i].startswith('-- ERROR'):
-                            i += 3
                             execucao.n_erros += 1
-                            error_names.append(CodebenchExtractor.__get_error_name(lines, i))
+                            i += 2
+                            while not lines[i].startswith('*-*'):
+                                m = re.match(r"^([\w_\.]+Error)", lines[i])
+                                if m:
+                                    error_names.append(m.group(0))
+                                i += 1
                         else:
                             i += 1
                 i += 1
@@ -588,7 +690,13 @@ class CodebenchExtractor:
                         if os.path.exists(code_file):
                             with open(code_file) as f:
                                 codigo = ''.join(f.readlines())
-                                execucao.metricas = CodebenchExtractor.__get_code_metrics(codigo)
+                            try:
+                                execucao.metricas = CodebenchExtractor.__extract_code_metrics(codigo)
+                                execucao.tokens = CodebenchExtractor.__extract_code_tokens(code_file)
+                            except Exception as e:
+                                execucao.metricas = None
+                                execucao.tokens = None
+                                Logger.error(f'Erro ao extrair métricas e tokens do arquivo, {str(e)}: {code_file}')
                         else:
                             Logger.warn(f'Arquivo de código fonte não encontrado: {code_file}')
 
@@ -622,7 +730,102 @@ class CodebenchExtractor:
                     solucao = Solucao(int(arquivo.name.replace(CodebenchExtractor.__solution_extension, '')))
                     with open(arquivo.path, 'r') as f:
                         codigo = ''.join(f.readlines())
-                        solucao.metricas = CodebenchExtractor.__get_code_metrics(codigo)
-                    solucoes.append(solucao)
+                    try:
+                        solucao.metricas = CodebenchExtractor.__extract_code_metrics(codigo)
+                        solucao.tokens = CodebenchExtractor.__extract_code_tokens(arquivo.path)
+                        solucoes.append(solucao)
+                    except Exception as e:
+                        Logger.error(
+                            f'Não foi possível extrair métricas e tokens do códigodo instrutor: {arquivo.path}')
 
         return solucoes
+
+    @staticmethod
+    def __extract_code_tokens(path: str):
+        """
+        Extrai e contabiliza Tokens de um arquivo de Código-Fonte Python.
+
+        :param path: Caminho absoluto para o arquivo de Código-Fonte Python.
+        :return: Objeto CodeTokens com a contagem de tokens encontrados.
+        """
+        # TODO média de caracteres por linha, média de espaços por linha, executa (True or False)
+        # TODO comprimento medio dos user-defined identifiers
+        # TODO desagrupar sum/minus e mult/div
+        ct = CodeTokens(0)
+        kwd_unique = set()
+        lgc_unique = set()
+        btf_unique = set()
+        tpf_unique = set()
+        asg_unique = set()
+        art_unique = set()
+        cmp_unique = set()
+        btw_unique = set()
+
+        with tokenize.open(path) as f:
+            tokens = tokenize.generate_tokens(f.readline)
+            for token in tokens:
+                exact_type = token.exact_type
+                if keyword.iskeyword(token.string):
+                    ct.keywords += 1
+                    kwd_unique.add(token.string)
+                    if CodebenchExtractor.__conditional_token.get(token.string, False):
+                        ct.conditionals += 1
+                    elif CodebenchExtractor.__is_import_token(token):
+                        ct.imports += 1
+                    elif CodebenchExtractor.__loop_token.get(token.string, False):
+                        ct.loops += 1
+                    elif CodebenchExtractor.__logical_op_token.get(token.string, False):
+                        ct.logical_op += 1
+                        lgc_unique.add(token.string)
+                    elif token.string == 'True' or token.string == 'False':
+                        ct.literal_booleans += 1
+                    elif token.string == 'break' or token.string == 'continue':
+                        ct.loop_control += 1
+                    elif token.string == 'is':
+                        ct.identity_op += 1
+                    elif token.string == 'in':
+                        ct.membership_op += 1
+                    elif token.string == 'lambda':
+                        ct.lambdas += 1
+                elif CodebenchExtractor.__builtin_token.get(token.string, False):
+                    ct.builtin_f += 1
+                    btf_unique.add(token.string)
+                    if CodebenchExtractor.__type_token.get(token.string, False):
+                        ct.type_f += 1
+                        tpf_unique.add(token.string)
+                    elif token.string == 'print':
+                        ct.prints += 1
+                    elif token.string == 'input':
+                        ct.inputs += 1
+                elif token.type == tokenize.OP:
+                    if exact_type == tokenize.EQUAL or exact_type == tokenize.DOUBLESLASHEQUAL or (tokenize.PLUSEQUAL <= exact_type <= tokenize.DOUBLESTAREQUAL):
+                        ct.assignments += 1
+                        asg_unique.add(token.string)
+                    elif (tokenize.PLUS <= exact_type <= tokenize.SLASH) or exact_type == tokenize.PERCENT or exact_type == tokenize.DOUBLESTAR or exact_type == tokenize.DOUBLESLASH:
+                        ct.arithmetic_op += 1
+                        art_unique.add(token.string)
+                    elif (tokenize.EQEQUAL <= exact_type <= tokenize.GREATEREQUAL) or exact_type == tokenize.LESS or exact_type == tokenize.GREATER:
+                        ct.comparison_op += 1
+                        cmp_unique.add(token.string)
+                    elif exact_type == tokenize.VBAR or exact_type == tokenize.AMPER or (tokenize.TILDE <= exact_type <= tokenize.RIGHTSHIFT):
+                        ct.bitwise_op += 1
+                        btw_unique.add(token.string)
+                    elif exact_type == tokenize.LPAR:
+                        ct.lpar += 1
+                    elif exact_type == tokenize.RPAR:
+                        ct.rpar += 1
+                elif token.type == tokenize.NUMBER:
+                    ct.literal_numbers += 1
+                elif token.type == tokenize.STRING:
+                    ct.literal_strings += 1
+
+        ct.keywords_unique = len(kwd_unique)
+        ct.logical_op_unique = len(lgc_unique)
+        ct.builtin_f_unique = len(btf_unique)
+        ct.type_f_unique = len(tpf_unique)
+        ct.assignments_unique = len(asg_unique)
+        ct.arithmetic_op_unique = len(art_unique)
+        ct.comparison_op_unique = len(cmp_unique)
+        ct.bitwise_op_unique = len(btw_unique)
+
+        return ct

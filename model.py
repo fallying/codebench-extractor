@@ -194,25 +194,30 @@ class Execucao(CSVEntity):
         self.estudante = estudante
         self.atividade = atividade
         self.exercicio = exercicio_codigo
-        self.t_implementacao = None
-        self.t_interacao = None
+        self.tempo_total = None
+        self.tempo_foco = None
         self.n_submissoes = None
         self.n_testes = None
         self.n_erros = None
         self.t_execucao = None
         self.nota_final = None
         self.acertou = None
-        self.metricas = None
+        self.metricas = Metricas(None)
+        self.tokens = CodeTokens(None)
 
     def as_row(self) -> List:
+        if not self.metricas:
+            self.metricas = Metricas(None)
+        if not self.tokens:
+            self.tokens = CodeTokens(None)
         return [
             self.periodo.descricao,
             self.turma.codigo,
             self.estudante.codigo,
             self.atividade.codigo,
             self.exercicio,
-            self.t_implementacao,
-            self.t_interacao,
+            self.tempo_total,
+            self.tempo_foco,
             self.n_submissoes,
             self.n_testes,
             self.n_erros,
@@ -240,12 +245,42 @@ class Execucao(CSVEntity):
             self.metricas.difficulty,
             self.metricas.effort,
             self.metricas.bugs,
-            self.metricas.time
+            self.metricas.time,
+            self.tokens.imports,
+            self.tokens.assignments,
+            self.tokens.assignments_unique,
+            self.tokens.keywords,
+            self.tokens.keywords_unique,
+            self.tokens.literal_numbers,
+            self.tokens.literal_strings,
+            self.tokens.literal_booleans,
+            self.tokens.logical_op,
+            self.tokens.logical_op_unique,
+            self.tokens.arithmetic_op,
+            self.tokens.arithmetic_op_unique,
+            self.tokens.comparison_op,
+            self.tokens.comparison_op_unique,
+            self.tokens.bitwise_op,
+            self.tokens.bitwise_op_unique,
+            self.tokens.identity_op,
+            self.tokens.membership_op,
+            self.tokens.conditionals,
+            self.tokens.loops,
+            self.tokens.loop_control,
+            self.tokens.builtin_f,
+            self.tokens.builtin_f_unique,
+            self.tokens.type_f,
+            self.tokens.type_f_unique,
+            self.tokens.lambdas,
+            self.tokens.lpar,
+            self.tokens.rpar,
+            self.tokens.prints,
+            self.tokens.inputs
         ]
 
     @staticmethod
     def get_csv_header() -> List[str]:
-        return list(Execucao(None, None, None, None, 0).__dict__)[:-1]+list(Metricas().__dict__)
+        return list(Execucao(None, None, None, None, 0).__dict__)[:-2]+list(Metricas(None).__dict__)+list(CodeTokens(None).__dict__)
 
 
 class Solucao(CSVEntity):
@@ -265,11 +300,12 @@ class Solucao(CSVEntity):
         :param codigo: Código numérico único do Exercicio da Solução.
         """
         self.codigo = codigo
-        self.metricas = Metricas()
+        self.metricas = Metricas(None)
+        self.tokens = CodeTokens(None)
 
     @staticmethod
     def get_csv_header() -> List[str]:
-        return list(Solucao(0).__dict__)[:-1]+list(Metricas().__dict__)
+        return list(Solucao(0).__dict__)[:-2]+list(Metricas(None).__dict__)+list(CodeTokens(None).__dict__)
 
     def as_row(self) -> List:
         return [
@@ -295,7 +331,37 @@ class Solucao(CSVEntity):
             self.metricas.difficulty,
             self.metricas.effort,
             self.metricas.bugs,
-            self.metricas.time
+            self.metricas.time,
+            self.tokens.imports,
+            self.tokens.assignments,
+            self.tokens.assignments_unique,
+            self.tokens.keywords,
+            self.tokens.keywords_unique,
+            self.tokens.literal_numbers,
+            self.tokens.literal_strings,
+            self.tokens.literal_booleans,
+            self.tokens.logical_op,
+            self.tokens.logical_op_unique,
+            self.tokens.arithmetic_op,
+            self.tokens.arithmetic_op_unique,
+            self.tokens.comparison_op,
+            self.tokens.comparison_op_unique,
+            self.tokens.bitwise_op,
+            self.tokens.bitwise_op_unique,
+            self.tokens.identity_op,
+            self.tokens.membership_op,
+            self.tokens.conditionals,
+            self.tokens.loops,
+            self.tokens.loop_control,
+            self.tokens.builtin_f,
+            self.tokens.builtin_f_unique,
+            self.tokens.type_f,
+            self.tokens.type_f_unique,
+            self.tokens.lambdas,
+            self.tokens.lpar,
+            self.tokens.rpar,
+            self.tokens.prints,
+            self.tokens.inputs
         ]
 
 
@@ -336,26 +402,62 @@ class Erro(CSVEntity):
 class Metricas:
     """Classe que representa as métricas de código extraídas usando o módulo 'radon'"""
 
-    def __init__(self):
-        self.complexity = None
-        self.n_classes = None
-        self.n_functions = None
-        self.loc = None
-        self.lloc = None
-        self.sloc = None
-        self.single_comments = None
-        self.comments = None
-        self.multilines = None
-        self.blank_lines = None
-        self.h1 = None
-        self.h2 = None
-        self.N1 = None
-        self.N2 = None
-        self.h = None
-        self.N = None
-        self.calculated_N = None
-        self.volume = None
-        self.difficulty = None
-        self.effort = None
-        self.bugs = None
-        self.time = None
+    def __init__(self, default_value):
+        self.complexity = default_value
+        self.n_classes = default_value
+        self.n_functions = default_value
+        self.loc = default_value
+        self.lloc = default_value
+        self.sloc = default_value
+        self.single_comments = default_value
+        self.comments = default_value
+        self.multilines = default_value
+        self.blank_lines = default_value
+        self.h1 = default_value
+        self.h2 = default_value
+        self.N1 = default_value
+        self.N2 = default_value
+        self.h = default_value
+        self.N = default_value
+        self.calculated_N = default_value
+        self.volume = default_value
+        self.difficulty = default_value
+        self.effort = default_value
+        self.bugs = default_value
+        self.time = default_value
+
+
+class CodeTokens:
+    """Classe que representa os Tokens obtidos de um código Python"""
+
+    def __init__(self, default_value):
+        self.imports = default_value
+        self.assignments = default_value
+        self.assignments_unique = default_value
+        self.keywords = default_value
+        self.keywords_unique = default_value
+        self.literal_numbers = default_value
+        self.literal_strings = default_value
+        self.literal_booleans = default_value
+        self.logical_op = default_value
+        self.logical_op_unique = default_value
+        self.arithmetic_op = default_value
+        self.arithmetic_op_unique = default_value
+        self.comparison_op = default_value
+        self.comparison_op_unique = default_value
+        self.bitwise_op = default_value
+        self.bitwise_op_unique = default_value
+        self.identity_op = default_value
+        self.membership_op = default_value
+        self.conditionals = default_value
+        self.loops = default_value
+        self.loop_control = default_value
+        self.builtin_f = default_value
+        self.builtin_f_unique = default_value
+        self.type_f = default_value
+        self.type_f_unique = default_value
+        self.lambdas = default_value
+        self.lpar = default_value
+        self.rpar = default_value
+        self.prints = default_value
+        self.inputs = default_value

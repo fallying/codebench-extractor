@@ -1,14 +1,14 @@
-from extractor import CodebenchExtractor
-from util import Util, Logger
-from parser import CSVParser
-
 import os
 
-__version__ = '3.1.0'
+from extractor import CodebenchExtractor
+from parser import CSVParser
+from util import Util, Logger
+
+__version__ = '2.2.0'
 # cwd (current working dir): diretório de trabalho atual
 __cwd__ = os.getcwd()
-# dataset_path: diretório onde se encontra o dataset do codebenh
-__dataset_dir__ = f'{__cwd__}/cb_dataset_v1.11/'
+# dataset_path: diretório onde se encontra o dataset do codebenhu
+__dataset_dir__ = '/home/mapl/Documentos/ufam/PIBIC 2020/cb_dataset_v1.11/'
 
 
 def main():
@@ -44,8 +44,9 @@ def main():
                 # salva as 'Execuções' no arquivo '.csv'
                 CSVParser.salvar_execucoes(estudante.execucoes)
 
-    # extrai as métricas das 'Soluções' propostas pelos professores
-    solucoes = CodebenchExtractor.extract_solucoes(f'{__cwd__}/solutions')
+    # # extrai as métricas das 'Soluções' propostas pelos professores
+    # solucoes = CodebenchExtractor.extract_solucoes(f'{__cwd__}/solutions')
+    solucoes = CodebenchExtractor.extract_solucoes('/home/mapl/Documentos/ufam/PIBIC 2020/pibic-2020/solutions')
     # salva as 'Soluções'  no arquivo '.csv'
     CSVParser.salvar_solucoes(solucoes)
 
