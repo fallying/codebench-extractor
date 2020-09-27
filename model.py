@@ -249,24 +249,52 @@ class Execucao(CSVEntity):
             self.tokens.imports,
             self.tokens.assignments,
             self.tokens.assignments_unique,
-            self.tokens.keywords,
-            self.tokens.keywords_unique,
-            self.tokens.literal_numbers,
-            self.tokens.literal_strings,
-            self.tokens.literal_booleans,
-            self.tokens.logical_op,
-            self.tokens.logical_op_unique,
+            self.tokens.kwds,
+            self.tokens.kwds_unique,
+            self.tokens.lt_numbers,
+            self.tokens.lt_strings,
+            self.tokens.lt_booleans,
+            self.tokens.lgc_op,
+            self.tokens.lgc_op_unique,
+            self.tokens.and_op,
+            self.tokens.or_op,
+            self.tokens.not_op,
             self.tokens.arithmetic_op,
             self.tokens.arithmetic_op_unique,
-            self.tokens.comparison_op,
-            self.tokens.comparison_op_unique,
+            self.tokens.add_op,
+            self.tokens.minus_op,
+            self.tokens.mult_op,
+            self.tokens.div_op,
+            self.tokens.mod_op,
+            self.tokens.power_op,
+            self.tokens.div_floor_op,
+            self.tokens.cmp_op,
+            self.tokens.cmp_op_unique,
+            self.tokens.equal_op,
+            self.tokens.not_eq_op,
+            self.tokens.lt_op,
+            self.tokens.gt_op,
+            self.tokens.less_op,
+            self.tokens.greater_op,
             self.tokens.bitwise_op,
             self.tokens.bitwise_op_unique,
+            self.tokens.bitwise_and,
+            self.tokens.bitwise_or,
+            self.tokens.bitwise_xor,
+            self.tokens.bitwise_not,
+            self.tokens.lshift_op,
+            self.tokens.rshift_op,
             self.tokens.identity_op,
             self.tokens.membership_op,
             self.tokens.conditionals,
+            self.tokens.ifs,
+            self.tokens.elifs,
+            self.tokens.elses,
             self.tokens.loops,
-            self.tokens.loop_control,
+            self.tokens.whiles,
+            self.tokens.fors,
+            self.tokens.breaks,
+            self.tokens.continues,
             self.tokens.builtin_f,
             self.tokens.builtin_f_unique,
             self.tokens.type_f,
@@ -274,8 +302,21 @@ class Execucao(CSVEntity):
             self.tokens.lambdas,
             self.tokens.lpar,
             self.tokens.rpar,
+            self.tokens.lsqb,
+            self.tokens.rsqb,
+            self.tokens.lbrace,
+            self.tokens.rbrace,
+            self.tokens.commas,
+            self.tokens.colons,
+            self.tokens.dots,
             self.tokens.prints,
-            self.tokens.inputs
+            self.tokens.inputs,
+            self.tokens.len,
+            self.tokens.uident,
+            self.tokens.uident_unique,
+            self.tokens.uident_mean,
+            self.tokens.uident_per_line,
+            self.tokens.uident_chars
         ]
 
     @staticmethod
@@ -335,24 +376,52 @@ class Solucao(CSVEntity):
             self.tokens.imports,
             self.tokens.assignments,
             self.tokens.assignments_unique,
-            self.tokens.keywords,
-            self.tokens.keywords_unique,
-            self.tokens.literal_numbers,
-            self.tokens.literal_strings,
-            self.tokens.literal_booleans,
-            self.tokens.logical_op,
-            self.tokens.logical_op_unique,
+            self.tokens.kwds,
+            self.tokens.kwds_unique,
+            self.tokens.lt_numbers,
+            self.tokens.lt_strings,
+            self.tokens.lt_booleans,
+            self.tokens.lgc_op,
+            self.tokens.lgc_op_unique,
+            self.tokens.and_op,
+            self.tokens.or_op,
+            self.tokens.not_op,
             self.tokens.arithmetic_op,
             self.tokens.arithmetic_op_unique,
-            self.tokens.comparison_op,
-            self.tokens.comparison_op_unique,
+            self.tokens.add_op,
+            self.tokens.minus_op,
+            self.tokens.mult_op,
+            self.tokens.div_op,
+            self.tokens.mod_op,
+            self.tokens.power_op,
+            self.tokens.div_floor_op,
+            self.tokens.cmp_op,
+            self.tokens.cmp_op_unique,
+            self.tokens.equal_op,
+            self.tokens.not_eq_op,
+            self.tokens.lt_op,
+            self.tokens.gt_op,
+            self.tokens.less_op,
+            self.tokens.greater_op,
             self.tokens.bitwise_op,
             self.tokens.bitwise_op_unique,
+            self.tokens.bitwise_and,
+            self.tokens.bitwise_or,
+            self.tokens.bitwise_xor,
+            self.tokens.bitwise_not,
+            self.tokens.lshift_op,
+            self.tokens.rshift_op,
             self.tokens.identity_op,
             self.tokens.membership_op,
             self.tokens.conditionals,
+            self.tokens.ifs,
+            self.tokens.elifs,
+            self.tokens.elses,
             self.tokens.loops,
-            self.tokens.loop_control,
+            self.tokens.whiles,
+            self.tokens.fors,
+            self.tokens.breaks,
+            self.tokens.continues,
             self.tokens.builtin_f,
             self.tokens.builtin_f_unique,
             self.tokens.type_f,
@@ -360,8 +429,21 @@ class Solucao(CSVEntity):
             self.tokens.lambdas,
             self.tokens.lpar,
             self.tokens.rpar,
+            self.tokens.lsqb,
+            self.tokens.rsqb,
+            self.tokens.lbrace,
+            self.tokens.rbrace,
+            self.tokens.commas,
+            self.tokens.colons,
+            self.tokens.dots,
             self.tokens.prints,
-            self.tokens.inputs
+            self.tokens.inputs,
+            self.tokens.len,
+            self.tokens.uident,
+            self.tokens.uident_unique,
+            self.tokens.uident_mean,
+            self.tokens.uident_per_line,
+            self.tokens.uident_chars
         ]
 
 
@@ -434,24 +516,52 @@ class CodeTokens:
         self.imports = default_value
         self.assignments = default_value
         self.assignments_unique = default_value
-        self.keywords = default_value
-        self.keywords_unique = default_value
-        self.literal_numbers = default_value
-        self.literal_strings = default_value
-        self.literal_booleans = default_value
-        self.logical_op = default_value
-        self.logical_op_unique = default_value
+        self.kwds = default_value
+        self.kwds_unique = default_value
+        self.lt_numbers = default_value
+        self.lt_strings = default_value
+        self.lt_booleans = default_value
+        self.lgc_op = default_value
+        self.lgc_op_unique = default_value
+        self.and_op = default_value
+        self.or_op = default_value
+        self.not_op = default_value
         self.arithmetic_op = default_value
         self.arithmetic_op_unique = default_value
-        self.comparison_op = default_value
-        self.comparison_op_unique = default_value
+        self.add_op = default_value
+        self.minus_op = default_value
+        self.mult_op = default_value
+        self.div_op = default_value
+        self.mod_op = default_value
+        self.power_op = default_value
+        self.div_floor_op = default_value
+        self.cmp_op = default_value
+        self.cmp_op_unique = default_value
+        self.equal_op = default_value
+        self.not_eq_op = default_value
+        self.lt_op = default_value
+        self.gt_op = default_value
+        self.less_op = default_value
+        self.greater_op = default_value
         self.bitwise_op = default_value
         self.bitwise_op_unique = default_value
+        self.bitwise_and = default_value
+        self.bitwise_or = default_value
+        self.bitwise_xor = default_value
+        self.bitwise_not = default_value
+        self.lshift_op = default_value
+        self.rshift_op = default_value
         self.identity_op = default_value
         self.membership_op = default_value
         self.conditionals = default_value
+        self.ifs = default_value
+        self.elifs = default_value
+        self.elses = default_value
         self.loops = default_value
-        self.loop_control = default_value
+        self.whiles = default_value
+        self.fors = default_value
+        self.breaks = default_value
+        self.continues = default_value
         self.builtin_f = default_value
         self.builtin_f_unique = default_value
         self.type_f = default_value
@@ -459,5 +569,18 @@ class CodeTokens:
         self.lambdas = default_value
         self.lpar = default_value
         self.rpar = default_value
+        self.lsqb = default_value
+        self.rsqb = default_value
+        self.lbrace = default_value
+        self.rbrace = default_value
+        self.commas = default_value
+        self.colons = default_value
+        self.dots = default_value
         self.prints = default_value
         self.inputs = default_value
+        self.len = default_value
+        self.uident = default_value
+        self.uident_unique = default_value
+        self.uident_mean = default_value
+        self.uident_per_line = default_value
+        self.uident_chars = default_value

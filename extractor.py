@@ -2,6 +2,7 @@ import keyword
 import re
 import tokenize
 from datetime import datetime, timedelta
+from statistics import mean
 
 from radon.metrics import h_visit
 from radon.raw import analyze
@@ -120,23 +121,6 @@ class CodebenchExtractor:
         'type': True,
         'vars': True,
         'zip': True,
-    }
-
-    __loop_token = {
-        'for': True,
-        'while': True
-    }
-
-    __conditional_token = {
-        'if': True,
-        'elif': True,
-        'else': True
-    }
-
-    __logical_op_token = {
-        'and': True,
-        'or': True,
-        'not': True
     }
 
     @staticmethod
@@ -604,19 +588,27 @@ class CodebenchExtractor:
                             i += 1
 
                     if execucao.nota_final > 99.99:
+                        code = ''.join(lines[code_start_line:code_end_line])
+                        execucao.acertou = True
                         try:
-                            code = ''.join(lines[code_start_line:code_end_line])
                             execucao.metricas = CodebenchExtractor.__extract_code_metrics(code)
+                        except Exception as e:
+                            execucao.nota_final = 0.0
+                            execucao.acertou = False
+                            execucao.metricas = None
+                            Logger.error(f'Erro ao extrair métricas do log de execucoes, {str(e)}: {path}')
+                        try:
                             with open('temp.py', 'w') as temp:
                                 temp.write(code)
                             execucao.tokens = CodebenchExtractor.__extract_code_tokens('temp.py')
-                            execucao.acertou = True
-                            i = size + 1
-                        except Exception:
+                        except Exception as e:
                             execucao.nota_final = 0.0
-                            execucao.metricas = None
+                            execucao.acertou = False
                             execucao.tokens = None
-                            Logger.error(f'Erro ao extrair métricas e tokens do arquivo de log de execucoes: {path}')
+                            Logger.error(f'Erro ao extrair tokens do log de execucoes: {str(e)}: {path}')
+
+                        if execucao.acertou:
+                            i = size + 1
 
                 elif lines[i].startswith('== T'):
                     execucao.n_testes += 1
@@ -683,20 +675,23 @@ class CodebenchExtractor:
                     else:
                         Logger.warn(f'Arquivo de execução não encontrado: {codemirror_file}')
 
-                    if not execucao.metricas:
+                    if not execucao.metricas or not execucao.tokens:
                         code_file = arquivo.name.replace(CodebenchExtractor.__codemirror_file_extension,
                                                          CodebenchExtractor.__exercices_file_extension)
                         code_file = f'{estudante.path}/codes/{code_file}'
                         if os.path.exists(code_file):
-                            with open(code_file) as f:
-                                codigo = ''.join(f.readlines())
                             try:
+                                with open(code_file) as f:
+                                    codigo = ''.join(f.readlines())
                                 execucao.metricas = CodebenchExtractor.__extract_code_metrics(codigo)
-                                execucao.tokens = CodebenchExtractor.__extract_code_tokens(code_file)
                             except Exception as e:
                                 execucao.metricas = None
+                                Logger.error(f'Erro ao extrair métricas do arquivo, {str(e)}: {code_file}')
+                            try:
+                                execucao.tokens = CodebenchExtractor.__extract_code_tokens(code_file)
+                            except Exception as e:
                                 execucao.tokens = None
-                                Logger.error(f'Erro ao extrair métricas e tokens do arquivo, {str(e)}: {code_file}')
+                                Logger.error(f'Erro ao extrair tokens do arquivo, {str(e)}: {code_file}')
                         else:
                             Logger.warn(f'Arquivo de código fonte não encontrado: {code_file}')
 
@@ -735,8 +730,7 @@ class CodebenchExtractor:
                         solucao.tokens = CodebenchExtractor.__extract_code_tokens(arquivo.path)
                         solucoes.append(solucao)
                     except Exception as e:
-                        Logger.error(
-                            f'Não foi possível extrair métricas e tokens do códigodo instrutor: {arquivo.path}')
+                        Logger.error(f'Não foi possível extrair métricas e tokens do códigodo instrutor: {arquivo.path}')
 
         return solucoes
 
@@ -748,46 +742,71 @@ class CodebenchExtractor:
         :param path: Caminho absoluto para o arquivo de Código-Fonte Python.
         :return: Objeto CodeTokens com a contagem de tokens encontrados.
         """
-        # TODO média de caracteres por linha, média de espaços por linha, executa (True or False)
-        # TODO comprimento medio dos user-defined identifiers
-        # TODO desagrupar sum/minus e mult/div
+        # TODO relatório das builtin functions mais recorrentes
+        # TODO relatório das type functions mais recorrentes
+        # TODO relatório dos operadores mais recorrentes
         ct = CodeTokens(0)
-        kwd_unique = set()
-        lgc_unique = set()
-        btf_unique = set()
-        tpf_unique = set()
-        asg_unique = set()
-        art_unique = set()
-        cmp_unique = set()
-        btw_unique = set()
+        kwd_unique = set()  # unique keywords
+        lgc_unique = set()  # unique logical operators
+        btf_unique = set()  # unique bultin_functions
+        tpf_unique = set()  # unique type_functions
+        asg_unique = set()  # unique assignment operators
+        art_unique = set()  # unique arithmeti operators
+        cmp_unique = set()  # unique comparison operators
+        btw_unique = set()  # unique bitwise operators
+        id_per_line = []  # identifiers per line
+        id_unique = set()  # unique user identifiers
+        line = 0
 
         with tokenize.open(path) as f:
             tokens = tokenize.generate_tokens(f.readline)
             for token in tokens:
                 exact_type = token.exact_type
                 if keyword.iskeyword(token.string):
-                    ct.keywords += 1
+                    ct.kwds += 1
                     kwd_unique.add(token.string)
-                    if CodebenchExtractor.__conditional_token.get(token.string, False):
+                    if token.string == 'if':
                         ct.conditionals += 1
-                    elif CodebenchExtractor.__is_import_token(token):
-                        ct.imports += 1
-                    elif CodebenchExtractor.__loop_token.get(token.string, False):
+                        ct.ifs += 1
+                    elif token.string == 'else':
+                        ct.conditionals += 1
+                        ct.elses += 1
+                    elif token.string == 'elif':
+                        ct.conditionals += 1
+                        ct.elifs += 1
+                    elif token.string == 'while':
                         ct.loops += 1
-                    elif CodebenchExtractor.__logical_op_token.get(token.string, False):
-                        ct.logical_op += 1
+                        ct.whiles += 1
+                    elif token.string == 'for':
+                        ct.loops += 1
+                        ct.fors += 1
+                    elif token.string == 'and':
+                        ct.lgc_op += 1
+                        ct.and_op += 1
+                        lgc_unique.add(token.string)
+                    elif token.string == 'or':
+                        ct.lgc_op += 1
+                        ct.or_op += 1
+                        lgc_unique.add(token.string)
+                    elif token.string == 'not':
+                        ct.lgc_op += 1
+                        ct.not_op += 1
                         lgc_unique.add(token.string)
                     elif token.string == 'True' or token.string == 'False':
-                        ct.literal_booleans += 1
-                    elif token.string == 'break' or token.string == 'continue':
-                        ct.loop_control += 1
+                        ct.lt_booleans += 1
+                    elif CodebenchExtractor.__is_import_token(token):
+                        ct.imports += 1
+                    elif token.string == 'break':
+                        ct.breaks += 1
+                    elif token.string == 'continue':
+                        ct.continues += 1
                     elif token.string == 'is':
                         ct.identity_op += 1
                     elif token.string == 'in':
                         ct.membership_op += 1
                     elif token.string == 'lambda':
                         ct.lambdas += 1
-                elif CodebenchExtractor.__builtin_token.get(token.string, False):
+                elif CodebenchExtractor.__builtin_token.get(token.string, False):  # if is a builtin function
                     ct.builtin_f += 1
                     btf_unique.add(token.string)
                     if CodebenchExtractor.__type_token.get(token.string, False):
@@ -797,35 +816,172 @@ class CodebenchExtractor:
                         ct.prints += 1
                     elif token.string == 'input':
                         ct.inputs += 1
+                    elif token.string == 'len':
+                        ct.len += 1
                 elif token.type == tokenize.OP:
-                    if exact_type == tokenize.EQUAL or exact_type == tokenize.DOUBLESLASHEQUAL or (tokenize.PLUSEQUAL <= exact_type <= tokenize.DOUBLESTAREQUAL):
+                    # operador de atribuição ou atribuição composta
+                    if exact_type == tokenize.EQUAL or (tokenize.PLUSEQUAL <= exact_type <= tokenize.DOUBLESTAREQUAL) or exact_type == tokenize.DOUBLESLASHEQUAL:
                         ct.assignments += 1
                         asg_unique.add(token.string)
-                    elif (tokenize.PLUS <= exact_type <= tokenize.SLASH) or exact_type == tokenize.PERCENT or exact_type == tokenize.DOUBLESTAR or exact_type == tokenize.DOUBLESLASH:
+                        if exact_type == tokenize.PLUSEQUAL:  # operador '+='
+                            ct.arithmetic_op += 1
+                            art_unique.add('+')
+                            ct.add_op += 1
+                        elif exact_type == tokenize.MINEQUAL:  # operador '-='
+                            ct.arithmetic_op += 1
+                            art_unique.add('-')
+                            ct.minus_op += 1
+                        elif exact_type == tokenize.STAREQUAL:  # operador '*='
+                            ct.arithmetic_op += 1
+                            art_unique.add('*')
+                            ct.mult_op += 1
+                        elif exact_type == tokenize.SLASHEQUAL:  # operador '/='
+                            ct.arithmetic_op += 1
+                            art_unique.add('/')
+                            ct.div_op += 1
+                        elif exact_type == tokenize.PERCENTEQUAL:  # operador '%='
+                            ct.arithmetic_op += 1
+                            art_unique.add('%')
+                            ct.mod_op += 1
+                        elif exact_type == tokenize.DOUBLESLASHEQUAL:  # operador '//='
+                            ct.arithmetic_op += 1
+                            art_unique.add('//')
+                            ct.div_floor_op += 1
+                        elif exact_type == tokenize.DOUBLESTAREQUAL:  # operador '**='
+                            ct.arithmetic_op += 1
+                            art_unique.add('**')
+                            ct.power_op += 1
+                        elif exact_type == tokenize.AMPEREQUAL:  # operador '&='
+                            ct.bitwise_op += 1
+                            btw_unique.add('&')
+                            ct.bitwise_and += 1
+                        elif exact_type == tokenize.VBAREQUAL:  # operador '|='
+                            ct.bitwise_op += 1
+                            btw_unique.add('|')
+                            ct.bitwise_or += 1
+                        elif exact_type == tokenize.CIRCUMFLEXEQUAL:  # operador '^='
+                            ct.bitwise_op += 1
+                            btw_unique.add('^')
+                            ct.bitwise_xor += 1
+                        elif exact_type == tokenize.LEFTSHIFTEQUAL:  # operador '<<='
+                            ct.bitwise_op += 1
+                            btw_unique.add('<<')
+                            ct.lshift_op += 1
+                        elif exact_type == tokenize.RIGHTSHIFTEQUAL:  # operador '>>='
+                            ct.bitwise_op += 1
+                            btw_unique.add('>>')
+                            ct.rshift_op += 1
+                    # operador aritmético
+                    elif tokenize.PLUS <= exact_type <= tokenize.SLASH or exact_type == tokenize.PERCENT or exact_type == tokenize.DOUBLESTAR or exact_type == tokenize.DOUBLESLASH:
                         ct.arithmetic_op += 1
                         art_unique.add(token.string)
-                    elif (tokenize.EQEQUAL <= exact_type <= tokenize.GREATEREQUAL) or exact_type == tokenize.LESS or exact_type == tokenize.GREATER:
-                        ct.comparison_op += 1
+                        if exact_type == tokenize.PLUS:  # operador '+'
+                            ct.add_op += 1
+                        elif exact_type == tokenize.MINUS:  # operador '-'
+                            ct.minus_op += 1
+                        elif exact_type == tokenize.STAR:  # operador '*'
+                            ct.mult_op += 1
+                        elif exact_type == tokenize.SLASH:  # operador '/'
+                            ct.div_op += 1
+                        elif exact_type == tokenize.PERCENT:  # operador '%'
+                            ct.mod_op += 1
+                        elif exact_type == tokenize.DOUBLESTAR:  # operador '**'
+                            ct.power_op += 1
+                        elif exact_type == tokenize.DOUBLESLASH:  # operador '//'
+                            ct.div_floor_op += 1
+                    # operador de comparação I
+                    elif tokenize.EQEQUAL <= exact_type <= tokenize.GREATEREQUAL:
+                        ct.cmp_op += 1
                         cmp_unique.add(token.string)
+                        if tokenize.EQEQUAL:  # operador '=='
+                            ct.equal_op += 1
+                        elif tokenize.NOTEQUAL:  # operador '!='
+                            ct.not_eq_op += 1
+                        elif exact_type == tokenize.LESSEQUAL:  # operador '<='
+                            ct.lt_op += 1
+                        elif exact_type == tokenize.GREATEREQUAL:  # operador '>='
+                            ct.gt_op += 1
+                    # operador de comparação II
+                    elif exact_type == tokenize.LESS:  # operador '<'
+                        ct.cmp_op += 1
+                        cmp_unique.add(token.string)
+                        ct.less_op += 1
+                    # operador de comparação III
+                    elif exact_type == tokenize.GREATER:  # operador '>'
+                        ct.cmp_op += 1
+                        cmp_unique.add(token.string)
+                        ct.greater_op += 1
+                    # operadores bitwise
                     elif exact_type == tokenize.VBAR or exact_type == tokenize.AMPER or (tokenize.TILDE <= exact_type <= tokenize.RIGHTSHIFT):
                         ct.bitwise_op += 1
                         btw_unique.add(token.string)
-                    elif exact_type == tokenize.LPAR:
+                        if exact_type == tokenize.AMPER:  # operador '&'
+                            ct.bitwise_and += 1
+                        elif exact_type == tokenize.VBAR:  # operador '|'
+                            ct.bitwise_or += 1
+                        elif exact_type == tokenize.TILDE:  # operador '~'
+                            ct.bitwise_not += 1
+                        elif exact_type == tokenize.CIRCUMFLEX:  # operador '^'
+                            ct.bitwise_xor += 1
+                        elif exact_type == tokenize.RIGHTSHIFT:  # operador '>>'
+                            ct.rshift_op += 1
+                        elif exact_type == tokenize.LEFTSHIFT:  # operador '<<'
+                            ct.lshift_op += 1
+                    elif exact_type == tokenize.LPAR:  # operador '('
                         ct.lpar += 1
-                    elif exact_type == tokenize.RPAR:
+                    elif exact_type == tokenize.RPAR:  # operador ')'
                         ct.rpar += 1
+                    elif exact_type == tokenize.LSQB:  # operador '['
+                        ct.lsqb += 1
+                    elif exact_type == tokenize.RSQB:  # operador ']'
+                        ct.rsqb += 1
+                    elif exact_type == tokenize.LBRACE:  # operador '{'
+                        ct.lbrace += 1
+                    elif exact_type == tokenize.RBRACE:  # operador '}'
+                        ct.rbrace += 1
+                    elif exact_type == tokenize.COMMA:  # operador ','
+                        ct.commas += 1
+                    elif exact_type == tokenize.COLON:  # operador ':'
+                        ct.colons += 1
+                    elif exact_type == tokenize.DOT:  # operador '.'
+                        ct.dots += 1
                 elif token.type == tokenize.NUMBER:
-                    ct.literal_numbers += 1
+                    ct.lt_numbers += 1
                 elif token.type == tokenize.STRING:
-                    ct.literal_strings += 1
+                    ct.lt_strings += 1
+                elif token.type == tokenize.NAME:
+                    id_unique.add(token.string)
+                    if token.start[0] == line:
+                        id_per_line[-1] += 1
+                    else:
+                        id_per_line.append(1)
+                        line = token.start[0]
 
-        ct.keywords_unique = len(kwd_unique)
-        ct.logical_op_unique = len(lgc_unique)
+        ct.kwds_unique = len(kwd_unique)
+        ct.lgc_op_unique = len(lgc_unique)
         ct.builtin_f_unique = len(btf_unique)
         ct.type_f_unique = len(tpf_unique)
         ct.assignments_unique = len(asg_unique)
         ct.arithmetic_op_unique = len(art_unique)
-        ct.comparison_op_unique = len(cmp_unique)
+        ct.cmp_op_unique = len(cmp_unique)
         ct.bitwise_op_unique = len(btw_unique)
+        ct.uident = sum(id_per_line)
+        ct.uident_unique = len(id_unique)
+        if len(id_per_line) > 0:
+            ct.uident_mean = mean(id_per_line)
+        else:
+            ct.uident_mean = 0.0
+        if token.end[0] > 0:
+            ct.uident_per_line = ct.uident / token.end[0]
+        else:
+            ct.uidentifiers_per_lin = 0.0
+
+        if ct.uident_unique > 0:
+            char_total = 0
+            for identifier in id_unique:
+                char_total += len(identifier)
+            ct.uident_chars = char_total / ct.uident_unique
+        else:
+            ct.uident_chars = 0.0
 
         return ct
