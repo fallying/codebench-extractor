@@ -1,3 +1,7 @@
+### Codebench Dataset Extractor by Marcos Lima (marcos.lima@icomp.ufam.edu.br)
+### Universidade Federal do Amazonas - UFAM
+### Instituto de Computação - IComp
+
 import os
 
 from extractor import CodebenchExtractor
@@ -5,10 +9,12 @@ from parser import CSVParser
 from util import Util, Logger
 
 __version__ = '2.2.0'
+
 # cwd (current working dir): diretório de trabalho atual
 __cwd__ = os.getcwd()
-# dataset_path: diretório onde se encontra o dataset do codebenhu
-__dataset_dir__ = '/home/mapl/Documentos/ufam/PIBIC 2020/cb_dataset_v1.11/'
+
+# COLOQUE O CAMINHO PARA O DIRETÓRIO ONDE O DATASET FOI SALVO
+__dataset_dir__ = '.../cb_dataset_v1.11/'
 
 
 def main():
@@ -45,8 +51,7 @@ def main():
                 CSVParser.salvar_execucoes(estudante.execucoes)
 
     # # extrai as métricas das 'Soluções' propostas pelos professores
-    # solucoes = CodebenchExtractor.extract_solucoes(f'{__cwd__}/solutions')
-    solucoes = CodebenchExtractor.extract_solucoes('/home/mapl/Documentos/ufam/PIBIC 2020/pibic-2020/solutions')
+    solucoes = CodebenchExtractor.extract_solucoes(f'{__cwd__}/solutions')
     # salva as 'Soluções'  no arquivo '.csv'
     CSVParser.salvar_solucoes(solucoes)
 
