@@ -1,3 +1,7 @@
+### Codebench Dataset Extractor by Marcos Lima (marcos.lima@icomp.ufam.edu.br)
+### Universidade Federal do Amazonas - UFAM
+### Instituto de Computação - IComp
+
 import logging
 import os
 from collections import Counter
