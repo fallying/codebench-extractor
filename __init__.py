@@ -14,7 +14,7 @@ __version__ = '2.2.0'
 __cwd__ = os.getcwd()
 
 # COLOQUE O CAMINHO PARA O DIRETÓRIO ONDE O DATASET FOI SALVO
-__dataset_dir__ = '.../cb_dataset_v1.11/'
+__dataset_dir__ = '../cb_dataset_v1.11/'
 
 
 def main():

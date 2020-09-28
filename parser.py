@@ -15,17 +15,17 @@ class CSVParser:
 
     # diretório dos arquivos de saída '.csv' (datasets)
     __output_dir = os.getcwd() + '/csv'
-    __periodos_csv = f'{__output_dir}/periodos.csv'
-    __turmas_csv = f'{__output_dir}/turmas.csv'
-    __atividades_csv = f'{__output_dir}/atividades.csv'
-    __estudantes_csv = f'{__output_dir}/estudantes.csv'
-    __execucoes_csv = f'{__output_dir}/execucoes.csv'
-    __solucoes_csv = f'{__output_dir}/solucoes.csv'
-    __erros_csv = f'{__output_dir}/erros.csv'
+    __periodos_csv = 'periodos.csv'
+    __turmas_csv = 'turmas.csv'
+    __atividades_csv = 'atividades.csv'
+    __estudantes_csv = 'estudantes.csv'
+    __execucoes_csv = 'execucoes.csv'
+    __solucoes_csv = 'solucoes.csv'
+    __erros_csv = 'erros.csv'
 
     @staticmethod
     def __create_csv_file(filename: str, header: List[str]):
-        with open(filename, 'w') as f:
+        with open(f'{CSVParser.__output_dir}/{filename}', 'w') as f:
             header = ','.join(header) + os.linesep
             f.write(header)
 
@@ -34,15 +34,17 @@ class CSVParser:
         """Cria a pasta e os arquivos de saídas '.csv' (datasets)."""
         try:
             # se o diretório de saída existir, apaga seu conteúdo
-            # if os.path.exists(CSVParser.__output_dir):
-            #     shutil.rmtree(CSVParser.__output_dir)
+            if os.path.exists(CSVParser.__output_dir):
+                shutil.rmtree(CSVParser.__output_dir)
+            
             # cria o diretório de saída
-            # os.mkdir(CSVParser.__output_dir)
+            os.mkdir(CSVParser.__output_dir)
+            
             # cria todos os arquivos de saída '.csv' (datasets)
-            # CSVParser.__create_csv_file(CSVParser.__periodos_csv, Periodo.get_csv_header())
-            # CSVParser.__create_csv_file(CSVParser.__turmas_csv, Turma.get_csv_header())
-            # CSVParser.__create_csv_file(CSVParser.__atividades_csv, Atividade.get_csv_header())
-            # CSVParser.__create_csv_file(CSVParser.__estudantes_csv, Estudante.get_csv_header())
+            CSVParser.__create_csv_file(CSVParser.__periodos_csv, Periodo.get_csv_header())
+            CSVParser.__create_csv_file(CSVParser.__turmas_csv, Turma.get_csv_header())
+            CSVParser.__create_csv_file(CSVParser.__atividades_csv, Atividade.get_csv_header())
+            CSVParser.__create_csv_file(CSVParser.__estudantes_csv, Estudante.get_csv_header())
             CSVParser.__create_csv_file(CSVParser.__execucoes_csv, Execucao.get_csv_header())
             CSVParser.__create_csv_file(CSVParser.__solucoes_csv, Solucao.get_csv_header())
             CSVParser.__create_csv_file(CSVParser.__erros_csv, Erro.get_csv_header())
@@ -62,7 +64,9 @@ class CSVParser:
         :type mode: str
         """
         Logger.info(f'Salvando entidades no arquivo: {path}')
+        
         rows = []
+        
         for entidade in entidades:
             rows.append(entidade.as_row())
 
