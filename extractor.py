@@ -15,6 +15,7 @@ from radon.visitors import ComplexityVisitor
 from parser import *
 from util import Util
 
+from model import *
 
 class CodebenchExtractor:
     """
