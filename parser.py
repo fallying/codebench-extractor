@@ -24,7 +24,7 @@ class CSVParser:
     __erros_csv = 'erros.csv'
 
     @staticmethod
-    def __create_csv_file(filename: str, header: List[str]):
+    def __create_csv_file(filename: str, header):
         with open(f'{CSVParser.__output_dir}/{filename}', 'w') as f:
             header = ','.join(header) + os.linesep
             f.write(header)
@@ -52,7 +52,7 @@ class CSVParser:
             Logger.error('Erro ao criar diretório de saída!')
 
     @staticmethod
-    def __write_to_csv(entidades: List[CSVEntity], path: str, mode: str):
+    def __write_to_csv(entidades, path: str, mode: str):
         """
         Salva uma lista de :class:`CsvEntity` num arquivo no formato CSV.
 
@@ -75,7 +75,7 @@ class CSVParser:
             writter.writerows(rows)
 
     @staticmethod
-    def salvar_periodos(periodos: List[Periodo]):
+    def salvar_periodos(periodos):
         """
         Salva uma lista de :class:`Periodo` no arquivo '.csv' (dataset).
 
@@ -84,7 +84,7 @@ class CSVParser:
         CSVParser.__write_to_csv(periodos, CSVParser.__periodos_csv, 'a')
 
     @staticmethod
-    def salvar_turmas(turmas: List[Turma]):
+    def salvar_turmas(turmas):
         """
         Salva uma lista de :class:`Turma` no arquivo '.csv' (dataset).
 
@@ -93,7 +93,7 @@ class CSVParser:
         CSVParser.__write_to_csv(turmas, CSVParser.__turmas_csv, 'a')
 
     @staticmethod
-    def salvar_atividades(atividades: List[Atividade]):
+    def salvar_atividades(atividades):
         """
         Salva uma lista de :class:`Atividade` no arquivo '.csv' (dataset).
 
@@ -102,7 +102,7 @@ class CSVParser:
         CSVParser.__write_to_csv(atividades, CSVParser.__atividades_csv, 'a')
 
     @staticmethod
-    def salvar_estudantes(estudantes: List[Estudante]):
+    def salvar_estudantes(estudantes):
         """
          Salva uma lista de :class:`Estudante` no arquivo '.csv' (dataset).
 
@@ -111,7 +111,7 @@ class CSVParser:
         CSVParser.__write_to_csv(estudantes, CSVParser.__estudantes_csv, 'a')
 
     @staticmethod
-    def salvar_execucoes(execucoes: List[Execucao]):
+    def salvar_execucoes(execucoes):
         """
          Salva uma lista de :class:`Execucao` no arquivo '.csv' (dataset).
 
@@ -120,7 +120,7 @@ class CSVParser:
         CSVParser.__write_to_csv(execucoes, CSVParser.__execucoes_csv, 'a')
 
     @staticmethod
-    def salvar_solucoes(solucoes: List[Solucao]):
+    def salvar_solucoes(solucoes):
         """
          Salva uma lista de :class:`Solucao` no arquivo '.csv' (dataset).
 
@@ -129,7 +129,7 @@ class CSVParser:
         CSVParser.__write_to_csv(solucoes, CSVParser.__solucoes_csv, 'a')
 
     @staticmethod
-    def salvar_erros(erros: List[Erro]):
+    def salvar_erros(erros):
         """
          Salva uma lista de :class:`Erro` no arquivo '.csv' (dataset).
 
