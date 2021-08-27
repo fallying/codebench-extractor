@@ -14,7 +14,7 @@ __version__ = '2.2.0'
 __cwd__ = os.getcwd()
 
 # COLOQUE O CAMINHO PARA O DIRETÓRIO ONDE O DATASET FOI SALVO
-__dataset_dir__ = '../cb_dataset_v1.11/'
+__dataset_dir__ = '../cb_dataset_vX.XX/'
 
 
 def main():
@@ -51,9 +51,9 @@ def main():
                 CSVParser.salvar_execucoes(estudante.execucoes)
 
     # # extrai as métricas das 'Soluções' propostas pelos professores
-    solucoes = CodebenchExtractor.extract_solucoes(f'{__cwd__}/solutions')
+    # solucoes = CodebenchExtractor.extract_solucoes(f'{__cwd__}/solutions')
     # salva as 'Soluções'  no arquivo '.csv'
-    CSVParser.salvar_solucoes(solucoes)
+    # CSVParser.salvar_solucoes(solucoes)
 
 
 if __name__ == '__main__':
