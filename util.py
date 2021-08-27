@@ -20,7 +20,10 @@ class Util:
     # função que limpa a tela do console
     @staticmethod
     def clear_console():
-        os.system('clear')
+        if os.name == 'nt':
+            os.system('cls')
+        else:
+            os.system('clear')
 
     @staticmethod
     def count_errors(error_names, execucao: Execucao):
