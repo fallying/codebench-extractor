@@ -134,7 +134,7 @@ class CodebenchExtractor:
         return False
 
     @staticmethod
-    def extract_periodos(path: str) -> List[Periodo]:
+    def extract_periodos(path: str):
         """
         Retorna uma lista de todos os :class:`Periodo` letivos encontrados no dataset Codebench.
 
