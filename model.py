@@ -2,18 +2,16 @@
 ### Universidade Federal do Amazonas - UFAM
 ### Instituto de Computação - IComp
 
-from typing import List
-
 
 class CSVEntity:
     """Interface que especifica os métodos de uma Entidade que possa ser salva num arquivo '.csv' (dataset)."""
 
-    def as_row(self) -> List:
+    def as_row(self):
         """Retorna valores dos atributos da Entidade numa lista (row), para então serem salvos no dataset."""
         pass
 
     @staticmethod
-    def get_csv_header() -> List[str]:
+    def get_csv_header():
         """Retorna uma lista com o nome de todos os atributos da Entidade, que devam ser salvas no dataset (csv file header)."""
         pass
 
@@ -32,7 +30,7 @@ class Periodo(CSVEntity):
         self.path = path
         self.turmas = []
 
-    def as_row(self) -> List:
+    def as_row(self):
         return [self.descricao]
 
     @staticmethod
@@ -58,7 +56,7 @@ class Turma(CSVEntity):
         self.atividades = []
         self.estudantes = []
 
-    def as_row(self) -> List:
+    def as_row(self):
         return [
             self.periodo.descricao,
             self.codigo,
@@ -94,7 +92,7 @@ class Atividade(CSVEntity):
         self.blocos = []
         self.path = path
 
-    def as_row(self) -> List:
+    def as_row(self):
         return [
             self.periodo.descricao,
             self.turma.codigo,
@@ -144,7 +142,7 @@ class Estudante(CSVEntity):
         self.execucoes = []
         self.path = path
 
-    def as_row(self) -> List:
+    def as_row(self):
         return [
             self.periodo.descricao,
             self.turma.codigo,
@@ -164,7 +162,7 @@ class Estudante(CSVEntity):
         ]
 
     @staticmethod
-    def get_csv_header() -> List[str]:
+    def get_csv_header():
         return list(Estudante(None, None, 0, '').__dict__)[:-2]
 
 
@@ -209,7 +207,7 @@ class Execucao(CSVEntity):
         self.metricas = Metricas(None)
         self.tokens = CodeTokens(None)
 
-    def as_row(self) -> List:
+    def as_row(self):
         if not self.metricas:
             self.metricas = Metricas(None)
         if not self.tokens:
@@ -324,7 +322,7 @@ class Execucao(CSVEntity):
         ]
 
     @staticmethod
-    def get_csv_header() -> List[str]:
+    def get_csv_header():
         return list(Execucao(None, None, None, None, 0).__dict__)[:-2]+list(Metricas(None).__dict__)+list(CodeTokens(None).__dict__)
 
 
@@ -349,10 +347,10 @@ class Solucao(CSVEntity):
         self.tokens = CodeTokens(None)
 
     @staticmethod
-    def get_csv_header() -> List[str]:
+    def get_csv_header():
         return list(Solucao(0).__dict__)[:-2]+list(Metricas(None).__dict__)+list(CodeTokens(None).__dict__)
 
-    def as_row(self) -> List:
+    def as_row(self):
         return [
             self.codigo,
             self.metricas.complexity,
@@ -469,7 +467,7 @@ class Erro(CSVEntity):
         self.tipo = tipo
         self.ocorrencias = count
 
-    def as_row(self) -> List:
+    def as_row(self):
         return [
             self.periodo.descricao,
             self.turma.codigo,
@@ -481,7 +479,7 @@ class Erro(CSVEntity):
         ]
 
     @staticmethod
-    def get_csv_header() -> List[str]:
+    def get_csv_header():
         return list(Erro('', 0).__dict__)
 
 
