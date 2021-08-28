@@ -12,7 +12,7 @@ from radon.metrics import h_visit
 from radon.raw import analyze
 from radon.visitors import ComplexityVisitor
 
-from parser import *
+from csv_parser import *
 from util import Util
 
 from model import *
@@ -154,12 +154,12 @@ class CodebenchExtractor:
         periodos = []
         # recupera todas as 'entradas' (arquivos ou pastas) no caminho informado (path).
         with os.scandir(path) as entries:
-            for entry in entries:
-                with os.scandir(entry.path) as folders:
-                    for folder in folders:
-                        Logger.info(f'Extraindo informações de Perído: {folder.name}')
-                        p = Periodo(folder.name, folder.path)
-                        periodos.append(p)
+            for folder in entries:
+                #with os.scandir(entry.path) as folders:
+                #for folder in folders:
+                Logger.info(f'Extraindo informações de Perído: {folder.name}')
+                p = Periodo(folder.name, folder.path)
+                periodos.append(p)
         return periodos
 
     @staticmethod
@@ -220,7 +220,7 @@ class CodebenchExtractor:
                     Logger.info(f'Extraindo informações de Turma: {folder.name} {periodo.descricao}')
                     code = int(folder.name)
                     turma = Turma(periodo, code, folder.path)
-                    CodebenchExtractor.__extract_turma_descricao_from_file(f'{folder.path}/assessments', turma)
+                    CodebenchExtractor.__extract_turma_descricao_from_file(os.path.join(folder.path, 'assessments'), turma)
                     periodo.turmas.append(turma)
 
     @staticmethod
@@ -289,12 +289,12 @@ class CodebenchExtractor:
         :type turma: Turma
         """
         # coleta todas os arquivos/pastas dentro do diretório de atividades da turma
-        with os.scandir(f'{turma.path}/assessments') as arquivos:
+        with os.scandir(os.path.join(turma.path, 'assessments')) as arquivos:
             for arquivo in arquivos:
                 # se a 'entrada' for um arquivo de extensão '.data', então corresponde a uma atividade.
                 if arquivo.is_file() and arquivo.path.endswith(CodebenchExtractor.__atividade_file_extension):
                     Logger.info(f'Extraindo informações de Atividade: {arquivo.name}')
-                    code = int(arquivo.path.split('/')[-1].replace(CodebenchExtractor.__atividade_file_extension, ''))
+                    code = int(arquivo.path.split(os.path.sep)[-1].replace(CodebenchExtractor.__atividade_file_extension, ''))
                     atividade = Atividade(turma, code, arquivo.path)
                     CodebenchExtractor.__extract_atividade_info_from_file(arquivo.path, atividade)
                     turma.atividades.append(atividade)
@@ -380,14 +380,14 @@ class CodebenchExtractor:
         :type turma: Turma
         """
         # coleta todas os arquivos/pastas no diretório de 'estudantes' informado
-        with os.scandir(f'{turma.path}/users') as folders:
+        with os.scandir(os.path.join(turma.path, 'users')) as folders:
             for folder in folders:
                 # se a 'entrada' for um diretório, então corresponde a pasta de um 'estudante'.
                 if folder.is_dir():
                     Logger.info(f'Extraindo informações do Estudante: {folder.name}')
                     estudante = Estudante(turma.periodo, turma, int(folder.name), folder.path)
                     CodebenchExtractor.__extract_estudante_info_from_file(
-                        f'{folder.path}/{CodebenchExtractor.__estudante_file_name}', estudante)
+                        os.path.join(folder.path, CodebenchExtractor.__estudante_file_name), estudante)
                     turma.estudantes.append(estudante)
 
     @staticmethod
@@ -661,7 +661,7 @@ class CodebenchExtractor:
         # isto facilita a obtenção do intervalo da atividade no cálculo dos tempos de implementação e interação
         atividades = {a.codigo: a for a in estudante.turma.atividades}
         # coleta todas os arquivos/pastas dentro do diretório de execuções do aluno
-        with os.scandir(f'{estudante.path}/executions') as arquivos:
+        with os.scandir(os.path.join(estudante.path, 'executions')) as arquivos:
             for arquivo in arquivos:
                 # se a 'entrada' for um arquivo de extensão '.log', então corresponde as execuções de uma questão.
                 if arquivo.is_file() and arquivo.path.endswith(CodebenchExtractor.__codemirror_file_extension):
@@ -674,7 +674,7 @@ class CodebenchExtractor:
 
                     CodebenchExtractor.__extract_executions_count(arquivo.path, execucao)
 
-                    codemirror_file = f'{estudante.path}/codemirror/{arquivo.name}'
+                    codemirror_file = os.path.join(estudante.path, 'codemirror', arquivo.name)
                     if os.path.exists(codemirror_file):
                         CodebenchExtractor.__extract_solution_interval(codemirror_file, execucao)
                     else:
@@ -683,7 +683,7 @@ class CodebenchExtractor:
                     if not execucao.metricas or not execucao.tokens:
                         code_file = arquivo.name.replace(CodebenchExtractor.__codemirror_file_extension,
                                                          CodebenchExtractor.__exercices_file_extension)
-                        code_file = f'{estudante.path}/codes/{code_file}'
+                        code_file = os.path.join(estudante.path, 'codes', code_file)
                         if os.path.exists(code_file):
                             try:
                                 with open(code_file) as f:
