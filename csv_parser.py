@@ -14,7 +14,7 @@ class CSVParser:
     """Class Responsável por manipular os arquivos de saída '.csv'"""
 
     # diretório dos arquivos de saída '.csv' (datasets)
-    __output_dir = os.getcwd() + '/csv'
+    __output_dir = os.path.join(os.getcwd(), 'csv')
     __periodos_csv = 'periodos.csv'
     __turmas_csv = 'turmas.csv'
     __atividades_csv = 'atividades.csv'
@@ -25,7 +25,7 @@ class CSVParser:
 
     @staticmethod
     def __create_csv_file(filename: str, header):
-        with open(f'{CSVParser.__output_dir}/{filename}', 'w') as f:
+        with open(os.path.join(CSVParser.__output_dir, filename), 'w') as f:
             header = ','.join(header) + os.linesep
             f.write(header)
 
