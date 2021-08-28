@@ -135,10 +135,22 @@ class Estudante(CSVEntity):
         self.escola_tipo = None
         self.escola_turno = None
         self.escola_ano_grad = None
+        self.computador = None
+        self.computador_compartilhado = None
+        self.internet = None
+        self.programa = None
+        self.trabalha = None
+        self.empresa_nome = None
+        self.trabalha_ano_inicio = None
+        self.trabalha_ano_termino = None
+        self.outra_graduacao = None
+        self.outra_graduacao_curso = None
+        self.outra_graduacao_ano_inicio = None
+        self.outra_graduacao_ano_fim = None
         self.sexo = None
         self.ano_nascimento = None
         self.estado_civil = None
-        self.tem_filhos = None
+        self.filhos = None
         self.execucoes = []
         self.path = path
 
@@ -155,10 +167,22 @@ class Estudante(CSVEntity):
             self.escola_tipo,
             self.escola_turno,
             self.escola_ano_grad,
+            self.computador,
+            self.computador_compartilhado,
+            self.internet,
+            self.programa,
+            self.trabalha,
+            self.empresa_nome,
+            self.trabalha_ano_inicio,
+            self.trabalha_ano_termino,
+            self.outra_graduacao,
+            self.outra_graduacao_curso,
+            self.outra_graduacao_ano_inicio,
+            self.outra_graduacao_ano_fim,
             self.sexo,
             self.ano_nascimento,
             self.estado_civil,
-            self.tem_filhos
+            self.filhos
         ]
 
     @staticmethod
