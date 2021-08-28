@@ -51,7 +51,7 @@ class Util:
 
 class Logger:
 
-    __path = os.getcwd() + '/logs'
+    __path = os.path.join(os.getcwd(), 'logs')
     __cblogger = None
 
     @staticmethod
@@ -67,17 +67,17 @@ class Logger:
         if not Logger.__cblogger:
             Logger.__cblogger = logging.getLogger('cblogger')
 
-            ifh = logging.FileHandler(f'{Logger.__path}/{data_hoje}_info.log')
+            ifh = logging.FileHandler(os.path.join(Logger.__path, f'{data_hoje}_info.log'))
             ifh.setLevel(level=logging.INFO)
             ifh.setFormatter(formatter)
             Logger.__cblogger.addHandler(ifh)
 
-            wfh = logging.FileHandler(f'{Logger.__path}/{data_hoje}_warn.log')
+            wfh = logging.FileHandler(os.path.join(Logger.__path, f'{data_hoje}_warn.log'))
             wfh.setLevel(level=logging.WARNING)
             wfh.setFormatter(formatter)
             Logger.__cblogger.addHandler(wfh)
 
-            efh = logging.FileHandler(f'{Logger.__path}/{data_hoje}_error.log')
+            efh = logging.FileHandler(os.path.join(Logger.__path, f'{data_hoje}_error.log'))
             efh.setLevel(level=logging.ERROR)
             efh.setFormatter(formatter)
             Logger.__cblogger.addHandler(efh)
