@@ -313,48 +313,40 @@ class CodebenchExtractor:
         """
         with open(path, 'r') as f:
             Logger.info(f'Extraindo informações do Estudante no arquivo: {path}')
-            for index, line in enumerate(f.readlines(), start=0):
+            dict_obj = {}
+
+            for line in ''.join(f.readlines()).split('--'):
                 line = line.strip()
-                if line.startswith('---- cou') and index == 1:
-                    estudante.curso_id = int(CodebenchExtractor.__get_property_value(line))
-                elif line.startswith('---- cou') and index == 2:
-                    estudante.curso_nome = CodebenchExtractor.__get_property_value(line)
-                elif line.startswith('---- in') and index == 3:
-                    estudante.instituicao_id = int(CodebenchExtractor.__get_property_value(line))
-                elif line.startswith('---- in') and index == 4:
-                    estudante.instituicao_nome = CodebenchExtractor.__get_property_value(line)
-                elif line.startswith('---- hi'):
-                    estudante.escola_nome = CodebenchExtractor.__get_property_value(line)
-                elif line.startswith('---- sch'):
-                    estudante.escola_tipo = CodebenchExtractor.__get_property_value(line)
-                elif line.startswith('---- shi'):
-                    estudante.escola_turno = CodebenchExtractor.__get_property_value(line)
-                elif line.startswith('---- gr'):
-                    estudante.escola_ano_grad = int(CodebenchExtractor.__get_property_value(line))
-                elif line.startswith('---- sex'):
-                    estudante.sexo = CodebenchExtractor.__get_property_value(line)
-                elif line.startswith('---- year o'):
-                    estudante.ano_nascimento = int(CodebenchExtractor.__get_property_value(line))
-                elif line.startswith('---- civ'):
-                    estudante.estado_civil = CodebenchExtractor.__get_property_value(line)
-                elif line.startswith('---- hav'):
-                    estudante.tem_filhos = True if CodebenchExtractor.__get_property_value(line) == 'yes' else False
+                if line:
+                    key, value = line.split(':')
+                    if value:
+                        dict_obj[key.lower().replace(' ', '_')] = value
 
-    @staticmethod
-    def __get_property_value(text: str):
-        """
-        Recebe uma linha de texto do arquivo de informações do estudante contendo uma chave e valor.
+            estudante.curso_id = dict_obj.get('course_id', 0)
+            estudante.curso_nome = dict_obj.get('course_name', None)
+            estudante.instituicao_id = dict_obj.get('institution_id', 0)
+            estudante.instituicao_nome = dict_obj.get('course_name', None)
+            estudante.escola_nome = dict_obj.get('high_school_name', None)
+            estudante.escola_tipo = dict_obj.get('school_type', None)
+            estudante.escola_turno = dict_obj.get('shift', None)
+            estudante.escola_ano_grad = dict_obj.get('graduation_year', 0)
+            estudante.computador = dict_obj.get('has_a_pc_at_home', None)
+            estudante.computador_compartilhado = dict_obj.get('share_this_pc_with_other_people_at_home', None)
+            estudante.internet = dict_obj.get('this_pc_has_access_to_internet', None)
+            estudante.programa = dict_obj.get('previous_experience_of_any_computer_language', None)
+            estudante.trabalha = dict_obj.get('worked_or_interned_before_the_degree', None)
+            estudante.empresa_nome = dict_obj.get('company_name', None)
+            estudante.trabalha_ano_inicio = dict_obj.get('year_started_working', None)
+            estudante.trabalha_ano_termino = dict_obj.get('year_stopped_working', None)
+            estudante.outra_graduacao = dict_obj.get('started_other_degree_programmes', None)
+            estudante.outra_graduacao_curso = dict_obj.get('degree_course', None)
+            estudante.outra_graduacao_ano_inicio = dict_obj.get('year_started_this_degree', None)
+            estudante.outra_graduacao_ano_fim = dict_obj.get('year_stopped_this_degree', None)
+            estudante.sexo = dict_obj.get('sex', None)
+            estudante.ano_nascimento = dict_obj.get('year_of_birth', None)
+            estudante.estado_civil = dict_obj.get('civil_status', None)
+            estudante.filhos = dict_obj.get('have_kids', None)
 
-        Retorna somente o valor associado a aquela chave. Cada linha possui uma chave separada de seu valor por ':'.
-
-        :param text: Linha de texto com a chave e valor.
-        :type text: str
-        :return: O valor encontrado na linha de texto ou 'None'.
-        """
-        idx = text.find(':')
-        if idx >= 0:
-            return text.strip()[idx + 2:]
-        return None
 
     @staticmethod
     def extract_estudantes(turma: Turma):
