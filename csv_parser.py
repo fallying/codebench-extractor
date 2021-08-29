@@ -54,7 +54,8 @@ class CSVParser:
             rows.append(entidade.as_row())
 
         df = pd.DataFrame(rows, columns=header)
-        df.to_csv(path, sep=',', index=False, encoding='utf-8')
+        # quoting 2 = NON_NUMERIC (csv.QUOTE_NON_NUMERIC)
+        df.to_csv(path, sep=',', index=False, encoding='utf-8', quoting=2)
 
     @staticmethod
     def salvar_periodos(periodos):
