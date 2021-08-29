@@ -76,12 +76,14 @@ def main():
             input()
         elif op == 4:
             start_time = time.time()
+            estudantes = []
             periodos = CodebenchExtractor.extract_periodos(dataset_dir)
             for periodo in periodos:
                 CodebenchExtractor.extract_turmas(periodo)
                 for turma in periodo.turmas:
                     CodebenchExtractor.extract_estudantes(turma)
-                    CSVParser.salvar_estudantes(turma.estudantes)
+                    estudantes.extend(turma.estudantes)
+            CSVParser.salvar_estudantes(estudantes)
             time_elapsed = time.strftime('%H:%M:%S', time.gmtime(time.time() - start_time))
             print(f'Tempo Total de Execução: {time_elapsed}. Tecla algo para continuar...')
             input()
