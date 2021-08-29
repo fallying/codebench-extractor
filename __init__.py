@@ -52,8 +52,8 @@ def main():
             input()
         elif op == 2:
             start_time = time.time()
-            periodos = CodebenchExtractor.extract_periodos(dataset_dir)
             turmas = []
+            periodos = CodebenchExtractor.extract_periodos(dataset_dir)
             for periodo in periodos:
                 CodebenchExtractor.extract_turmas(periodo)
                 turmas.extend(periodo.turmas)
@@ -63,12 +63,14 @@ def main():
             input()
         elif op == 3:
             start_time = time.time()
+            atividades = []
             periodos = CodebenchExtractor.extract_periodos(dataset_dir)
             for periodo in periodos:
                 CodebenchExtractor.extract_turmas(periodo)
                 for turma in periodo.turmas:
                     CodebenchExtractor.extract_atividades(turma)
-                    CSVParser.salvar_atividades(turma.atividades)
+                    atividades.extend(turma.atividades)
+            CSVParser.salvar_atividades(atividades)
             time_elapsed = time.strftime('%H:%M:%S', time.gmtime(time.time() - start_time))
             print(f'Tempo Total de Execução: {time_elapsed}. Tecla algo para continuar...')
             input()
