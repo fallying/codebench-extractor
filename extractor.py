@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ### Codebench Dataset Extractor by Marcos Lima (marcos.lima@icomp.ufam.edu.br)
 ### Universidade Federal do Amazonas - UFAM
 ### Instituto de Computação - IComp
@@ -13,9 +14,9 @@ from radon.raw import analyze
 from radon.visitors import ComplexityVisitor
 
 from csv_parser import *
+from model import *
 from util import Util
 
-from model import *
 
 class CodebenchExtractor:
     """
@@ -158,7 +159,9 @@ class CodebenchExtractor:
                 #with os.scandir(entry.path) as folders:
                 #for folder in folders:
                 Logger.info(f'Extraindo informações de Perído: {folder.name}')
-                p = Periodo(folder.name, folder.path)
+                p_title = folder.name.strip()
+                p_path = folder.path
+                p = Periodo(p_title, p_path)
                 periodos.append(p)
         return periodos
 
@@ -180,15 +183,15 @@ class CodebenchExtractor:
             for entry in entries:
                 # se a 'entrada' for um arquivo de extensão '.data' então corresponde atividade
                 if entry.is_file() and entry.path.endswith(CodebenchExtractor.__atividade_file_extension):
-                    with open(entry.path, 'r') as f:
+                    with open(entry.path, 'rb') as f:
                         Logger.info(f'Extraindo descrição da Turma no arquivo: {entry.path}')
-                        line = f.readline()
+                        line = f.readline().decode('utf-8')
                         while line:
                             # ---- class name: Introdução à Programação de Computadores
                             if line.startswith('---- class name:'):
                                 turma.descricao = line.strip()[17:]
                                 break
-                            line = f.readline()
+                            line = f.readline().decode('utf-8')
                     break
 
     @staticmethod
@@ -235,7 +238,7 @@ class CodebenchExtractor:
         :param atividade: Objeto que irá armazenar as informações retiradas do arquivo.
         :type atividade: Atividade
         """
-        with open(path, 'r') as f:
+        with open(path, 'rU', encoding='utf-8') as f:
             Logger.info(f'Extraindo informações da Atividade no arquivo: {path}')
             for line in f.readlines():
                 if line.startswith('---- as'):
@@ -311,14 +314,16 @@ class CodebenchExtractor:
         :param estudante: Objeto que irá armazenar as informações retiradas do arquivo.
         :type estudante: Estudante
         """
-        with open(path, 'r') as f:
+        with open(path, 'rU', encoding='utf-8') as f:
             Logger.info(f'Extraindo informações do Estudante no arquivo: {path}')
             dict_obj = {}
 
             for line in ''.join(f.readlines()).split('--'):
                 line = line.strip()
                 if line:
-                    key, value = line.split(':')
+                    line = line.split(':')
+                    key = line.pop(0)
+                    value = ''.join(line)
                     if value:
                         dict_obj[key.lower().replace(' ', '_')] = value
 
@@ -462,7 +467,7 @@ class CodebenchExtractor:
         :param execucao: Objeto que irá armazenar as informações obtidas do arquivo de 'log' do CodeMirror.
         :type execucao: Execucao
         """
-        with open(path, 'r') as f:
+        with open(path, 'rU', encoding='utf-8') as f:
             Logger.info(f'Calculando tempos des implementação e interação: {path}')
             # datas de inicio e termino da atividade, servem como limites para o calculo do tempo e solução
             atividade_data_inicio = datetime.strptime(execucao.atividade.data_inicio, '%Y-%m-%d %H:%M')
@@ -536,7 +541,7 @@ class CodebenchExtractor:
         :type execucao: model.Execucao
         """
         error_names = []
-        with open(path, 'r') as f:
+        with open(path, 'r', encoding='latin-1') as f:
             execucao.n_submissoes = 0
             execucao.n_testes = 0
             execucao.n_erros = 0
@@ -595,7 +600,7 @@ class CodebenchExtractor:
                             execucao.metricas = None
                             Logger.error(f'Erro ao extrair métricas do log de execucoes, {str(e)}: {path}')
                         try:
-                            with open('temp.py', 'w') as temp:
+                            with open('temp.py', 'w', encoding='latin-1') as temp:
                                 temp.write(code)
                             execucao.tokens = CodebenchExtractor.__extract_code_tokens('temp.py')
                         except Exception as e:
@@ -720,7 +725,7 @@ class CodebenchExtractor:
                 if arquivo.is_file() and arquivo.path.endswith(CodebenchExtractor.__solution_extension):
                     Logger.info(f'Extraindo métricas da Solução: {arquivo.path}')
                     solucao = Solucao(int(arquivo.name.replace(CodebenchExtractor.__solution_extension, '')))
-                    with open(arquivo.path, 'r') as f:
+                    with open(arquivo.path, 'rU') as f:
                         codigo = ''.join(f.readlines())
                     try:
                         solucao.metricas = CodebenchExtractor.__extract_code_metrics(codigo)
