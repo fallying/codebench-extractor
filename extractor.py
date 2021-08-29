@@ -315,27 +315,32 @@ class CodebenchExtractor:
         :param estudante: Objeto que irá armazenar as informações retiradas do arquivo.
         :type estudante: Estudante
         """
-        with open(path, 'rU', encoding='utf-8') as f:
+        with open(path, 'rb') as f:
             Logger.info(f'Extraindo informações do Estudante no arquivo: {path}')
             dict_obj = {}
 
-            for line in ''.join(f.readlines()).split('--'):
+            data = []
+            for line in f.readlines():
+                data.append(line.decode('utf-8'))
+            data = ''.join(data)
+
+            for line in data.split('--'):
                 line = line.strip()
                 if line:
                     line = line.split(':')
                     key = line.pop(0)
                     value = ''.join(line)
                     if value:
-                        dict_obj[key.lower().replace(' ', '_')] = value
+                        dict_obj[key.lower().replace(' ', '_')] = value.strip()
 
-            estudante.curso_id = dict_obj.get('course_id', 0)
+            estudante.curso_id = dict_obj.get('course_id', None)
             estudante.curso_nome = dict_obj.get('course_name', None)
-            estudante.instituicao_id = dict_obj.get('institution_id', 0)
+            estudante.instituicao_id = dict_obj.get('institution_id', None)
             estudante.instituicao_nome = dict_obj.get('course_name', None)
             estudante.escola_nome = dict_obj.get('high_school_name', None)
             estudante.escola_tipo = dict_obj.get('school_type', None)
             estudante.escola_turno = dict_obj.get('shift', None)
-            estudante.escola_ano_grad = dict_obj.get('graduation_year', 0)
+            estudante.escola_ano_grad = dict_obj.get('graduation_year', None)
             estudante.computador = dict_obj.get('has_a_pc_at_home', None)
             estudante.computador_compartilhado = dict_obj.get('share_this_pc_with_other_people_at_home', None)
             estudante.internet = dict_obj.get('this_pc_has_access_to_internet', None)
