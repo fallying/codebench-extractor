@@ -238,9 +238,10 @@ class CodebenchExtractor:
         :param atividade: Objeto que irá armazenar as informações retiradas do arquivo.
         :type atividade: Atividade
         """
-        with open(path, 'rU', encoding='utf-8') as f:
+        with open(path, 'rb') as f:
             Logger.info(f'Extraindo informações da Atividade no arquivo: {path}')
             for line in f.readlines():
+                line = line.decode('utf-8')
                 if line.startswith('---- as'):
                     atividade.titulo = line[23:].strip()
                 elif line.startswith('---- st'):
