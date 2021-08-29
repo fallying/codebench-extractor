@@ -1,64 +1,110 @@
+# -*- coding: utf-8 -*-
 ### Codebench Dataset Extractor by Marcos Lima (marcos.lima@icomp.ufam.edu.br)
 ### Universidade Federal do Amazonas - UFAM
 ### Instituto de Computação - IComp
 
 import os
+import time
 
+from csv_parser import CSVParser
 from extractor import CodebenchExtractor
-from parser import CSVParser
 from util import Util, Logger
 
-__version__ = '2.2.0'
+__version__ = '2.3.0'
 
 # cwd (current working dir): diretório de trabalho atual
 __cwd__ = os.getcwd()
 
-# COLOQUE O CAMINHO PARA O DIRETÓRIO ONDE O DATASET FOI SALVO
-__dataset_dir__ = '../cb_dataset_vX.XX/'
-
 
 def main():
-    # limpa o console de saída
-    Util.clear_console()
     # cria a pasta para os arquivos de saídade (CSV), caso já exista, recria os arquivos
     CSVParser.create_output_dir()
     # configura o módulo de log
     Logger.configure()
 
-    # recupera a lista de 'Periodos' dentro da pasta do dataset Codebench
-    periodos = CodebenchExtractor.extract_periodos(__dataset_dir__)
-    # os 'Periodos' são então salvos no arquivo '.csv'
-    # CSVParser.salvar_periodos(periodos)
+    Util.clear_console()
+    print(f'-- CODEBENCH DATASET EXTRACTOR v{__version__} --')
+    dataset_dir = input('Informe o caminho para o dataset: ')
 
-    for periodo in periodos:
-        # extrai as 'Turmas' para o 'Período'
-        CodebenchExtractor.extract_turmas(periodo)
-        # salva as 'Turmas' no arquivo .'csv'
-        # CSVParser.salvar_turmas(periodo.turmas)
-        for turma in periodo.turmas:
-            # extrai as 'Atividades' da 'Turma'
-            CodebenchExtractor.extract_atividades(turma)
-            # salva as 'Atividades' no arquivo '.csv'
-            # CSVParser.salvar_atividades(turma.atividades)
-            # extrai os 'Estudantes' da 'Turma'
-            CodebenchExtractor.extract_estudantes(turma)
-            # salva os 'Estudantes' no arquivo '.csv'
-            # CSVParser.salvar_estudantes(turma.estudantes)
-            for estudante in turma.estudantes:
-                # extrai as 'Execuções' do 'Estudante'
-                CodebenchExtractor.extract_execucoes(estudante)
-                # salva as 'Execuções' no arquivo '.csv'
-                CSVParser.salvar_execucoes(estudante.execucoes)
-
-    # # extrai as métricas das 'Soluções' propostas pelos professores
-    # solucoes = CodebenchExtractor.extract_solucoes(f'{__cwd__}/solutions')
-    # salva as 'Soluções'  no arquivo '.csv'
-    # CSVParser.salvar_solucoes(solucoes)
+    loop = True
+    while loop:
+        Util.clear_console()
+        print(f'-- CODEBENCH DATASET EXTRACTOR v{__version__} --')
+        print()
+        print('Escolha uma opção:')
+        print('1 - Extrair dados dos períodos letivos')
+        print('2 - Extrair dados das turmas ministradas (disciplinas)')
+        print('3 - Extrair dados das atividades realizadas (trabalhos e exames)')
+        print('4 - Extrair dados dos estudantes cadastrados')
+        print('5 - Extrair dados das tentativas de solução')
+        print('6 - Extrair dados das soluções dos instrutores')
+        print('0 - Sair')
+        op = input('Digite a opção desejada: ')
+        op = int(op.strip())
+        if op == 0:
+            loop = False
+        elif op == 1:
+            start_time = time.time()
+            periodos = CodebenchExtractor.extract_periodos(dataset_dir)
+            CSVParser.salvar_periodos(periodos)
+            time_elapsed = time.strftime('%H:%M:%S', time.gmtime(time.time() - start_time))
+            print(f'Tempo Total de Execução: {time_elapsed}. Tecla algo para continuar...')
+            input()
+        elif op == 2:
+            start_time = time.time()
+            periodos = CodebenchExtractor.extract_periodos(dataset_dir)
+            turmas = []
+            for periodo in periodos:
+                CodebenchExtractor.extract_turmas(periodo)
+                turmas.extend(periodo.turmas)
+            CSVParser.salvar_turmas(turmas)
+            time_elapsed = time.strftime('%H:%M:%S', time.gmtime(time.time() - start_time))
+            print(f'Tempo Total de Execução: {time_elapsed}. Tecla algo para continuar...')
+            input()
+        elif op == 3:
+            start_time = time.time()
+            periodos = CodebenchExtractor.extract_periodos(dataset_dir)
+            for periodo in periodos:
+                CodebenchExtractor.extract_turmas(periodo)
+                for turma in periodo.turmas:
+                    CodebenchExtractor.extract_atividades(turma)
+                    CSVParser.salvar_atividades(turma.atividades)
+            time_elapsed = time.strftime('%H:%M:%S', time.gmtime(time.time() - start_time))
+            print(f'Tempo Total de Execução: {time_elapsed}. Tecla algo para continuar...')
+            input()
+        elif op == 4:
+            start_time = time.time()
+            periodos = CodebenchExtractor.extract_periodos(dataset_dir)
+            for periodo in periodos:
+                CodebenchExtractor.extract_turmas(periodo)
+                for turma in periodo.turmas:
+                    CodebenchExtractor.extract_estudantes(turma)
+                    CSVParser.salvar_estudantes(turma.estudantes)
+            time_elapsed = time.strftime('%H:%M:%S', time.gmtime(time.time() - start_time))
+            print(f'Tempo Total de Execução: {time_elapsed}. Tecla algo para continuar...')
+            input()
+        elif op == 5:
+            start_time = time.time()
+            periodos = CodebenchExtractor.extract_periodos(dataset_dir)
+            for periodo in periodos:
+                CodebenchExtractor.extract_turmas(periodo)
+                for turma in periodo.turmas:
+                    CodebenchExtractor.extract_estudantes(turma)
+                    for estudante in turma.estudantes:
+                        CodebenchExtractor.extract_execucoes(estudante)
+                        CSVParser.salvar_execucoes(estudante.execucoes)
+            time_elapsed = time.strftime('%H:%M:%S', time.gmtime(time.time() - start_time))
+            print(f'Tempo Total de Execução: {time_elapsed}. Tecla algo para continuar...')
+            input()
+        elif op == 6:
+            solutions_dir = input('Informe o caminho para as soluções dos instrutores: ')
+            start_time = time.time()
+            solucoes = CodebenchExtractor.extract_solucoes(solutions_dir)
+            CSVParser.salvar_solucoes(solucoes)
+            time_elapsed = time.strftime('%H:%M:%S', time.gmtime(time.time() - start_time))
+            print(f'Tempo Total de Execução: {time_elapsed}. Tecla algo para continuar...')
+            input()
 
 
 if __name__ == '__main__':
-    import time
-    start_time = time.time()
     main()
-    time_elapsed = time.strftime('%H:%M:%S', time.gmtime(time.time() - start_time))
-    print(f'Tempo Total de Execução: {time_elapsed}')
