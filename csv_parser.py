@@ -2,9 +2,9 @@
 ### Universidade Federal do Amazonas - UFAM
 ### Instituto de Computação - IComp
 
-import csv
 import os
 import shutil
+import pandas as pd
 
 from model import *
 from util import Logger
@@ -25,7 +25,7 @@ class CSVParser:
 
     @staticmethod
     def __create_csv_file(filename: str, header):
-        with open(os.path.join(CSVParser.__output_dir, filename), 'w') as f:
+        with open(filename, 'w') as f:
             header = ','.join(header) + os.linesep
             f.write(header)
 
@@ -41,18 +41,18 @@ class CSVParser:
             os.mkdir(CSVParser.__output_dir)
             
             # cria todos os arquivos de saída '.csv' (datasets)
-            CSVParser.__create_csv_file(CSVParser.__periodos_csv, Periodo.get_csv_header())
-            CSVParser.__create_csv_file(CSVParser.__turmas_csv, Turma.get_csv_header())
-            CSVParser.__create_csv_file(CSVParser.__atividades_csv, Atividade.get_csv_header())
-            CSVParser.__create_csv_file(CSVParser.__estudantes_csv, Estudante.get_csv_header())
-            CSVParser.__create_csv_file(CSVParser.__execucoes_csv, Execucao.get_csv_header())
-            CSVParser.__create_csv_file(CSVParser.__solucoes_csv, Solucao.get_csv_header())
-            CSVParser.__create_csv_file(CSVParser.__erros_csv, Erro.get_csv_header())
+            CSVParser.__create_csv_file(os.path.join(CSVParser.__output_dir, CSVParser.__periodos_csv), Periodo.get_csv_header())
+            CSVParser.__create_csv_file(os.path.join(CSVParser.__output_dir, CSVParser.__turmas_csv), Turma.get_csv_header())
+            CSVParser.__create_csv_file(os.path.join(CSVParser.__output_dir, CSVParser.__atividades_csv), Atividade.get_csv_header())
+            CSVParser.__create_csv_file(os.path.join(CSVParser.__output_dir, CSVParser.__estudantes_csv), Estudante.get_csv_header())
+            CSVParser.__create_csv_file(os.path.join(CSVParser.__output_dir, CSVParser.__execucoes_csv), Execucao.get_csv_header())
+            CSVParser.__create_csv_file(os.path.join(CSVParser.__output_dir, CSVParser.__solucoes_csv), Solucao.get_csv_header())
+            CSVParser.__create_csv_file(os.path.join(CSVParser.__output_dir, CSVParser.__erros_csv), Erro.get_csv_header())
         except OSError:
             Logger.error('Erro ao criar diretório de saída!')
 
     @staticmethod
-    def __write_to_csv(entidades, path: str, mode: str):
+    def __write_to_csv(entidades, path: str, header: str):
         """
         Salva uma lista de :class:`CsvEntity` num arquivo no formato CSV.
 
@@ -70,9 +70,8 @@ class CSVParser:
         for entidade in entidades:
             rows.append(entidade.as_row())
 
-        with open(path, mode) as file:
-            writter = csv.writer(file)
-            writter.writerows(rows)
+        df = pd.DataFrame(rows, columns=header)
+        df.to_csv(path, sep=',', index=False)
 
     @staticmethod
     def salvar_periodos(periodos):
@@ -81,7 +80,7 @@ class CSVParser:
 
         :param periodos: Lista de Períodos a serem salvos.
         """
-        CSVParser.__write_to_csv(periodos, os.path.join(CSVParser.__output_dir, CSVParser.__periodos_csv), 'a')
+        CSVParser.__write_to_csv(periodos, os.path.join(CSVParser.__output_dir, CSVParser.__periodos_csv), Periodo.get_csv_header())
 
     @staticmethod
     def salvar_turmas(turmas):
@@ -90,7 +89,7 @@ class CSVParser:
 
         :param turmas: Lista de Turmas a serem salvos.
         """
-        CSVParser.__write_to_csv(turmas, os.path.join(CSVParser.__output_dir, CSVParser.__turmas_csv), 'a')
+        CSVParser.__write_to_csv(turmas, os.path.join(CSVParser.__output_dir, CSVParser.__turmas_csv), Turma.get_csv_header())
 
     @staticmethod
     def salvar_atividades(atividades):
@@ -99,7 +98,7 @@ class CSVParser:
 
         :param atividades: Lista de Atividades a serem salvas.
         """
-        CSVParser.__write_to_csv(atividades, os.path.join(CSVParser.__output_dir, CSVParser.__atividades_csv), 'a')
+        CSVParser.__write_to_csv(atividades, os.path.join(CSVParser.__output_dir, CSVParser.__atividades_csv), Atividade.get_csv_header())
 
     @staticmethod
     def salvar_estudantes(estudantes):
@@ -108,7 +107,7 @@ class CSVParser:
 
          :param estudantes: Lista de Estudantes a serem salvos.
          """
-        CSVParser.__write_to_csv(estudantes, os.path.join(CSVParser.__output_dir, CSVParser.__estudantes_csv), 'a')
+        CSVParser.__write_to_csv(estudantes, os.path.join(CSVParser.__output_dir, CSVParser.__estudantes_csv), Estudante.get_csv_header())
 
     @staticmethod
     def salvar_execucoes(execucoes):
@@ -117,7 +116,7 @@ class CSVParser:
 
          :param execucoes: Lista de Execucões a serem salvas.
         """
-        CSVParser.__write_to_csv(execucoes, os.path.join(CSVParser.__output_dir, CSVParser.__execucoes_csv), 'a')
+        CSVParser.__write_to_csv(execucoes, os.path.join(CSVParser.__output_dir, CSVParser.__execucoes_csv), Execucao.get_csv_header())
 
     @staticmethod
     def salvar_solucoes(solucoes):
@@ -126,7 +125,7 @@ class CSVParser:
 
          :param solucoes: Lista de Solucões a serem salvas.
         """
-        CSVParser.__write_to_csv(solucoes, os.path.join(CSVParser.__output_dir, CSVParser.__solucoes_csv), 'a')
+        CSVParser.__write_to_csv(solucoes, os.path.join(CSVParser.__output_dir, CSVParser.__solucoes_csv), Solucao.get_csv_header())
 
     @staticmethod
     def salvar_erros(erros):
@@ -135,5 +134,5 @@ class CSVParser:
 
          :param erros: Lista de Erros a serem salvos.
         """
-        CSVParser.__write_to_csv(erros, os.path.join(CSVParser.__output_dir, CSVParser.__erros_csv), 'a')
+        CSVParser.__write_to_csv(erros, os.path.join(CSVParser.__output_dir, CSVParser.__erros_csv), Erro.get_csv_header())
 
