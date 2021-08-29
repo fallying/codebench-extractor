@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ### Codebench Dataset Extractor by Marcos Lima (marcos.lima@icomp.ufam.edu.br)
 ### Universidade Federal do Amazonas - UFAM
 ### Instituto de Computação - IComp

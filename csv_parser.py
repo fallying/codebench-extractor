@@ -1,9 +1,10 @@
+# -*- coding: utf-8 -*-
 ### Codebench Dataset Extractor by Marcos Lima (marcos.lima@icomp.ufam.edu.br)
 ### Universidade Federal do Amazonas - UFAM
 ### Instituto de Computação - IComp
 
 import os
-import shutil
+
 import pandas as pd
 
 from model import *
@@ -24,30 +25,12 @@ class CSVParser:
     __erros_csv = 'erros.csv'
 
     @staticmethod
-    def __create_csv_file(filename: str, header):
-        with open(filename, 'w') as f:
-            header = ','.join(header) + os.linesep
-            f.write(header)
-
-    @staticmethod
     def create_output_dir():
         """Cria a pasta e os arquivos de saídas '.csv' (datasets)."""
         try:
             # se o diretório de saída existir, apaga seu conteúdo
-            if os.path.exists(CSVParser.__output_dir):
-                shutil.rmtree(CSVParser.__output_dir)
-            
-            # cria o diretório de saída
-            os.mkdir(CSVParser.__output_dir)
-            
-            # cria todos os arquivos de saída '.csv' (datasets)
-            CSVParser.__create_csv_file(os.path.join(CSVParser.__output_dir, CSVParser.__periodos_csv), Periodo.get_csv_header())
-            CSVParser.__create_csv_file(os.path.join(CSVParser.__output_dir, CSVParser.__turmas_csv), Turma.get_csv_header())
-            CSVParser.__create_csv_file(os.path.join(CSVParser.__output_dir, CSVParser.__atividades_csv), Atividade.get_csv_header())
-            CSVParser.__create_csv_file(os.path.join(CSVParser.__output_dir, CSVParser.__estudantes_csv), Estudante.get_csv_header())
-            CSVParser.__create_csv_file(os.path.join(CSVParser.__output_dir, CSVParser.__execucoes_csv), Execucao.get_csv_header())
-            CSVParser.__create_csv_file(os.path.join(CSVParser.__output_dir, CSVParser.__solucoes_csv), Solucao.get_csv_header())
-            CSVParser.__create_csv_file(os.path.join(CSVParser.__output_dir, CSVParser.__erros_csv), Erro.get_csv_header())
+            if not os.path.exists(CSVParser.__output_dir):
+                os.mkdir(CSVParser.__output_dir)
         except OSError:
             Logger.error('Erro ao criar diretório de saída!')
 
@@ -71,7 +54,7 @@ class CSVParser:
             rows.append(entidade.as_row())
 
         df = pd.DataFrame(rows, columns=header)
-        df.to_csv(path, sep=',', index=False)
+        df.to_csv(path, sep=',', index=False, encoding='utf-8')
 
     @staticmethod
     def salvar_periodos(periodos):
