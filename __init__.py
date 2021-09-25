@@ -6,6 +6,7 @@
 import os
 import time
 
+from merge_csv import MergeCsvs
 from csv_parser import CSVParser
 from extractor import CodebenchExtractor
 from util import Util, Logger
@@ -38,6 +39,7 @@ def main():
         print('4 - Extrair dados dos estudantes cadastrados')
         print('5 - Extrair dados das tentativas de solução')
         print('6 - Extrair dados das soluções dos instrutores')
+        print('7 - Unir csvs gerados')
         print('0 - Sair')
         op = input('Digite a opção desejada: ')
         op = int(op.strip())
@@ -108,7 +110,12 @@ def main():
             time_elapsed = time.strftime('%H:%M:%S', time.gmtime(time.time() - start_time))
             print(f'Tempo Total de Execução: {time_elapsed}. Tecla algo para continuar...')
             input()
-
+        elif op == 7:
+            start_time = time.time()
+            MergeCsvs.merge()
+            time_elapsed = time.strftime('%H:%M:%S', time.gmtime(time.time() - start_time))
+            print(f'Tempo Total de Execução: {time_elapsed}. Tecla algo para continuar...')
+            input()
 
 if __name__ == '__main__':
     main()
