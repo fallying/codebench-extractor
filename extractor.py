@@ -16,7 +16,7 @@ from radon.visitors import ComplexityVisitor
 from csv_parser import *
 from model import *
 from util import Util
-
+from pathlib import Path
 
 class CodebenchExtractor:
     """
@@ -224,6 +224,13 @@ class CodebenchExtractor:
                     code = int(folder.name)
                     turma = Turma(periodo, code, folder.path)
                     CodebenchExtractor.__extract_turma_descricao_from_file(os.path.join(folder.path, 'assessments'), turma)
+
+
+                    with os.scandir(os.path.join(turma.path, 'assessments')) as folders:
+                        for folder in folders:
+                            atividade = Atividade(turma, Path(folder.name).stem, folder.path)
+                            CodebenchExtractor.__extract_atividade_info_from_file(folder.path, atividade)
+                            turma.atividades.append(atividade)
                     periodo.turmas.append(turma)
 
     @staticmethod
@@ -672,7 +679,7 @@ class CodebenchExtractor:
                     # divide o nome do arquivo obtendo os códigos da atividade e exercício.
                     atividade_code, exercicio_code, *_ = arquivo.name.replace(
                         CodebenchExtractor.__codemirror_file_extension, '').split('_')
-                    atividade = atividades.get(int(atividade_code), None)
+                    atividade = atividades.get(atividade_code, None)
                     execucao = Execucao(estudante.periodo, estudante.turma, estudante, atividade, int(exercicio_code))
 
                     CodebenchExtractor.__extract_executions_count(arquivo.path, execucao)
