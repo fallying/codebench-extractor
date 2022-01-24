@@ -35,6 +35,32 @@ class CSVParser:
             Logger.error('Erro ao criar diretório de saída!')
 
     @staticmethod
+    def __write_execucoes_to_csv(entidades, path: str, header: str):
+        """
+                Salva uma lista de :class:`CsvEntity` num arquivo no formato CSV.
+
+                :param entidades: Lista de Entidades a serem salvas.
+                :type entidades: List[CSVEntity]
+                :param path: Caminho absoluto do arquivo '.csv' onde as Entidades devam ser salvas.
+                :type path: str
+                :param mode: Modo de abertura do arquivo.
+                :type mode: str
+                """
+        Logger.info(f'Salvando entidades no arquivo: {path}')
+
+        rows = []
+
+        for entidade in entidades:
+            rows.append(entidade.as_row())
+
+        df = pd.DataFrame(rows, columns=header)
+        # quoting 2 = NON_NUMERIC (csv.QUOTE_NON_NUMERIC)
+        if os.path.isfile(path):
+            df.to_csv(path, sep=',', mode='a', header=False, index=False, encoding='utf-8', quoting=2)
+        else:
+            df.to_csv(path, sep=',', index=False, encoding='utf-8', quoting=2)
+
+    @staticmethod
     def __write_to_csv(entidades, path: str, header: str):
         """
         Salva uma lista de :class:`CsvEntity` num arquivo no formato CSV.
@@ -47,9 +73,9 @@ class CSVParser:
         :type mode: str
         """
         Logger.info(f'Salvando entidades no arquivo: {path}')
-        
+
         rows = []
-        
+
         for entidade in entidades:
             rows.append(entidade.as_row())
 
@@ -64,7 +90,8 @@ class CSVParser:
 
         :param periodos: Lista de Períodos a serem salvos.
         """
-        CSVParser.__write_to_csv(periodos, os.path.join(CSVParser.__output_dir, CSVParser.__periodos_csv), Periodo.get_csv_header())
+        CSVParser.__write_to_csv(periodos, os.path.join(CSVParser.__output_dir, CSVParser.__periodos_csv),
+                                 Periodo.get_csv_header())
 
     @staticmethod
     def salvar_turmas(turmas):
@@ -73,7 +100,8 @@ class CSVParser:
 
         :param turmas: Lista de Turmas a serem salvos.
         """
-        CSVParser.__write_to_csv(turmas, os.path.join(CSVParser.__output_dir, CSVParser.__turmas_csv), Turma.get_csv_header())
+        CSVParser.__write_to_csv(turmas, os.path.join(CSVParser.__output_dir, CSVParser.__turmas_csv),
+                                 Turma.get_csv_header())
 
     @staticmethod
     def salvar_atividades(atividades):
@@ -82,7 +110,8 @@ class CSVParser:
 
         :param atividades: Lista de Atividades a serem salvas.
         """
-        CSVParser.__write_to_csv(atividades, os.path.join(CSVParser.__output_dir, CSVParser.__atividades_csv), Atividade.get_csv_header())
+        CSVParser.__write_to_csv(atividades, os.path.join(CSVParser.__output_dir, CSVParser.__atividades_csv),
+                                 Atividade.get_csv_header())
 
     @staticmethod
     def salvar_estudantes(estudantes):
@@ -91,7 +120,8 @@ class CSVParser:
 
          :param estudantes: Lista de Estudantes a serem salvos.
          """
-        CSVParser.__write_to_csv(estudantes, os.path.join(CSVParser.__output_dir, CSVParser.__estudantes_csv), Estudante.get_csv_header())
+        CSVParser.__write_to_csv(estudantes, os.path.join(CSVParser.__output_dir, CSVParser.__estudantes_csv),
+                                 Estudante.get_csv_header())
 
     @staticmethod
     def salvar_execucoes(execucoes):
@@ -100,7 +130,8 @@ class CSVParser:
 
          :param execucoes: Lista de Execucões a serem salvas.
         """
-        CSVParser.__write_to_csv(execucoes, os.path.join(CSVParser.__output_dir, CSVParser.__execucoes_csv), Execucao.get_csv_header())
+        CSVParser.__write_execucoes_to_csv(execucoes, os.path.join(CSVParser.__output_dir, CSVParser.__execucoes_csv),
+                                           Execucao.get_csv_header())
 
     @staticmethod
     def salvar_solucoes(solucoes):
@@ -109,7 +140,8 @@ class CSVParser:
 
          :param solucoes: Lista de Solucões a serem salvas.
         """
-        CSVParser.__write_to_csv(solucoes, os.path.join(CSVParser.__output_dir, CSVParser.__solucoes_csv), Solucao.get_csv_header())
+        CSVParser.__write_to_csv(solucoes, os.path.join(CSVParser.__output_dir, CSVParser.__solucoes_csv),
+                                 Solucao.get_csv_header())
 
     @staticmethod
     def salvar_erros(erros):
@@ -118,5 +150,6 @@ class CSVParser:
 
          :param erros: Lista de Erros a serem salvos.
         """
-        CSVParser.__write_to_csv(erros, os.path.join(CSVParser.__output_dir, CSVParser.__erros_csv), Erro.get_csv_header())
+        CSVParser.__write_to_csv(erros, os.path.join(CSVParser.__output_dir, CSVParser.__erros_csv),
+                                 Erro.get_csv_header())
 
